@@ -85,14 +85,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow" id="browser_scroller">
-                    <child>
-                      <object class="GtkLabel" id="browser_label">
-                        <property name="label">There should be a WebKitWebView here!!!</property>
-                        <property name="vexpand">True</property>
-                      </object>
-                    </child>
-                  </object>
+                  <object class="GtkScrolledWindow" id="browser_scroller"/>
                 </child>
               </object>
             </child>

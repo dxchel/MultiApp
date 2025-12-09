@@ -7,7 +7,7 @@
 
 class MainApplication : public Gtk::Application
 {
-    Gtk::Window *main_window{};
+    Gtk::Window *mainWindow{};
 
     void on_button_clicked();
     Gtk::Window* create_window();

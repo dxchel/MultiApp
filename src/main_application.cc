@@ -40,8 +40,8 @@ Gtk::Window* MainApplication::create_window()
     }
 
     // Get the GtkBuilder-instantiated dialog:
-    main_window = refBuilder->get_widget<Gtk::Window>("main_app_window");
-    if(!main_window)
+    mainWindow = refBuilder->get_widget<Gtk::Window>("main_app_window");
+    if(!mainWindow)
     {
         std::cerr << "Could not get the main window." << std::endl;
         return nullptr;
@@ -50,25 +50,26 @@ Gtk::Window* MainApplication::create_window()
     // or Gtk::Window::set_application(). When all added windows have been hidden
     // or removed, the application stops running (Gtk::Application::run() returns()),
     // unless Gio::Application::hold() has been called.
-    main_window->signal_hide().connect([this] () { delete main_window; });
+    mainWindow->signal_hide().connect([this] () { delete mainWindow; });
 
 
     // Get the GtkBuilder-instantiated button, and connect a signal handler:
     auto homeButton{refBuilder->get_widget<Gtk::Button>("home_button")};
     if(homeButton)
-        homeButton->signal_clicked().connect([this] () { delete main_window; });
+        homeButton->signal_clicked().connect([this] () { delete mainWindow; });
 
     // Get the GtkBuilder-instantiated browser_scroller, and connect WebKitWebView
-    // This is a WA as GtkBuilder doesn't currently support WebKitWebView
     auto browserScroller{refBuilder->get_widget<Gtk::ScrolledWindow>("browser_scroller")};
     if(browserScroller)
     {
         WebKitWebView *web_view{WEBKIT_WEB_VIEW(webkit_web_view_new())};
         webkit_web_view_load_uri(web_view, "https://www.google.com/");
-        // Gtk::Widget *web_view_widget = Glib::wrap(web_view);
-        // browserScroller->set_child(web_view_widget);
+        Gtk::Widget *web_view_widget{Glib::wrap(GTK_WIDGET(web_view))};
+        web_view_widget->set_name("browser_webview");
+        web_view_widget->set_vexpand(true);
+        browserScroller->set_child(*web_view_widget);
     }
 
-    add_window(*main_window);
-    return main_window;
+    add_window(*mainWindow);
+    return mainWindow;
 }
