@@ -1,5 +1,5 @@
 PROGRAM=multiapp
-OBJECTS=main.o
+OBJECTS=build/main_application.o build/main.o
 
 CC=g++
 CFLAGS=$(shell pkg-config --cflags gtkmm-4.0 webkitgtk-6.0)
@@ -7,12 +7,12 @@ CFLAGS+= -Wall -g -std=c++23
 
 LDFLAGS=$(shell pkg-config --libs gtkmm-4.0 webkitgtk-6.0)
 
-
 multiapp: $(OBJECTS)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $(PROGRAM).exe
 
-%.o : src/%.cc
-	$(CC) $(CFLAGS) -c $<
+build/%.o : src/%.cc
+	if [ ! -d build ]; then mkdir build; fi
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean: 
-	rm -rf $(OBJECTS) $(PROGRAM).exe 
+	rm -rf build $(PROGRAM).exe 

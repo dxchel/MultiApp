@@ -65,8 +65,8 @@ Gtk::Window* MainApplication::create_window()
     {
         WebKitWebView *web_view{WEBKIT_WEB_VIEW(webkit_web_view_new())};
         webkit_web_view_load_uri(web_view, "https://www.google.com/");
-        // Gtk::Widget * web_view_widget {Gtk::Widget(web_view)};
-        // browserScroller->set_child(web_view);
+        // Gtk::Widget *web_view_widget = Glib::wrap(web_view);
+        // browserScroller->set_child(web_view_widget);
     }
 
     add_window(*main_window);
