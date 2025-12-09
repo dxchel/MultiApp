@@ -15,4 +15,4 @@ multiapp: $(OBJECTS)
 	$(CC) $(CFLAGS) -c $<
 
 clean: 
-	rm -rf $(OBJECTS) $(PROGRAM) 
+	rm -rf $(OBJECTS) $(PROGRAM).exe 
