@@ -10,7 +10,7 @@ void on_button_clicked(){
 
 void on_app_activate(){
     // Load the GtkBuilder file and instantiate its widgets:
-    auto refBuilder = Gtk::Builder::create();
+    auto refBuilder{Gtk::Builder::create()};
     try{
         refBuilder->add_from_file("res/multi.ui");
     }
@@ -36,7 +36,7 @@ void on_app_activate(){
     }
 
     // Get the GtkBuilder-instantiated button, and connect a signal handler:
-    auto homeButton = refBuilder->get_widget<Gtk::Button>("home_button");
+    auto homeButton{refBuilder->get_widget<Gtk::Button>("home_button")};
     if(homeButton)
         homeButton->signal_clicked().connect([] () { on_button_clicked(); });
 
@@ -46,9 +46,9 @@ void on_app_activate(){
 
     // Get the GtkBuilder-instantiated browser_scroller, and connect WebKitWebView
     // This is a WA as GtkBuilder doesn't currently support WebKitWebView
-    auto browserScroller = refBuilder->get_widget<Gtk::ScrolledWindow>("browser_scroller");
+    auto browserScroller{refBuilder->get_widget<Gtk::ScrolledWindow>("browser_scroller")};
     if(browserScroller){
-        WebKitWebView *web_view = WEBKIT_WEB_VIEW(webkit_web_view_new());
+        WebKitWebView *web_view{WEBKIT_WEB_VIEW(webkit_web_view_new())};
         webkit_web_view_load_uri(web_view, "https://www.google.com/");
         // Gtk::Widget * web_view_widget {Gtk::Widget(web_view)};
         // browserScroller->set_child(web_view);

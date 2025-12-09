@@ -7,8 +7,8 @@
 
 namespace
 {
-Gtk::Window* mainDialog = nullptr;
-Glib::RefPtr<Gtk::Application> app;
+Gtk::Window* mainDialog{};
+Glib::RefPtr<Gtk::Application> app{};
 
 void on_button_clicked();
 void on_app_activate();
