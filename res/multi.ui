@@ -7,7 +7,7 @@
   <object class="GtkApplicationWindow" id="main_app_window">
     <property name="default-height">600</property>
     <property name="default-width">800</property>
-    <property name="icon-name">com.frac_tion.teleport</property>
+    <property name="icon-name">distortionfx</property>
     <property name="maximized">True</property>
     <property name="title">GUI MultiApp</property>
     <child>
@@ -18,19 +18,19 @@
             <property name="show-title-buttons">False</property>
             <child type="start">
               <object class="GtkButton" id="back_button">
-                <property name="icon-name">go-left</property>
+                <property name="icon-name">arrow-left</property>
                 <property name="tooltip-text">Back</property>
               </object>
             </child>
             <child type="start">
               <object class="GtkButton" id="forward_button">
-                <property name="icon-name">go-right</property>
+                <property name="icon-name">arrow-right</property>
                 <property name="tooltip-text">Forward</property>
               </object>
             </child>
             <child type="start">
               <object class="GtkButton" id="reload_button">
-                <property name="icon-name">reload</property>
+                <property name="icon-name">refreshstructure-symbolic</property>
                 <property name="tooltip-text">Reload</property>
               </object>
             </child>
@@ -71,7 +71,7 @@
             </child>
             <child>
               <object class="GtkButton" id="enter_button">
-                <property name="icon-name">enterprise</property>
+                <property name="icon-name">keyboard-enter-symbolic</property>
               </object>
             </child>
           </object>
@@ -84,7 +84,14 @@
                 <property name="orientation">vertical</property>
                 <property name="vexpand">True</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="browser_scroller"/>
+                  <object class="GtkScrolledWindow" id="browser_scroller">
+                    <child>
+                      <object class="GtkLabel" id="browser_label">
+                        <property name="label">There should be a WebKitWebView here!!!</property>
+                        <property name="vexpand">True</property>
+                      </object>
+                    </child>
+                  </object>
                 </child>
               </object>
             </child>

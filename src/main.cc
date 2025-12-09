@@ -57,6 +57,7 @@ void on_app_activate(){
     app->add_window(*mainDialog);
     mainDialog->set_visible(true);
 }
+
 }
 
 int main(int argc, char** argv){
