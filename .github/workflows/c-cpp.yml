@@ -23,6 +23,6 @@ jobs:
     - name: Run Display Mock
       run: Xvfb&
     - name: Run Tests
-      run: ./multiapp_tests.exe
+      run: xvfb-run ./multiapp_tests.exe
     - name: Build Project
       run: make
