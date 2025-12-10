@@ -19,9 +19,12 @@ MultiApp/            // Makefile/README
 │
 ├── src/             // C++ Source Files
 ├── include/         // C++ Header Files
-└── res/             // Misc resources
+├── res/             // Misc Resources
+│   │
+│   └── gtk/         // Gtk UI Resources
+└── tests/           // Test Source Files
     │
-    └── gtk/         // Gtk UI resources
+    └── include/     // Tests Header Files
 ```
 
 ## 🗺️ Roadmap
