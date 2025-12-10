@@ -27,6 +27,5 @@ MultiApp/            // Makefile/README
 ## 🗺️ Roadmap
 
 - 🚧 Simple internet browser
-- ❌ Tests
 - ❌ Fractal creator
 - 🏗️ Other goodies in the future
