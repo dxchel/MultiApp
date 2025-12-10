@@ -7,7 +7,7 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
     auto refBuilder{Gtk::Builder::create()};
     try
     {
-        refBuilder->add_from_file("res/browser_app.ui");
+        refBuilder->add_from_file("res/gtk/browser_app.ui");
     }
     catch(const Glib::FileError& ex)
     {
@@ -48,4 +48,5 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
     // Insert elements into Browser Box
     insert_child_at_start(*header);
     insert_child_after(*scroller, *header);
+    set_name("main_browser");
 }

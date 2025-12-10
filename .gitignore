@@ -2,4 +2,4 @@
 *.exe
 *.o
 *.cmb
-build
+*build
