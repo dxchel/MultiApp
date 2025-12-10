@@ -1,0 +1,26 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches:
+    - main
+    - release/*
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install Dependencies
+      run: apt install libgtkmm-4.0-dev libwebkitgtk-6.0-dev make
+    - name: Tests
+      run: make tests
+    - name: Run Tests
+      run: ./multiapp_tests.exe
+    - name: make
+      run: make
