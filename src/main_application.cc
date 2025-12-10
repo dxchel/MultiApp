@@ -62,12 +62,12 @@ Gtk::Window* MainApplication::create_window()
     auto browserScroller{refBuilder->get_widget<Gtk::ScrolledWindow>("browser_scroller")};
     if(browserScroller)
     {
-        WebKitWebView *web_view{WEBKIT_WEB_VIEW(webkit_web_view_new())};
-        webkit_web_view_load_uri(web_view, "https://www.google.com/");
-        Gtk::Widget *web_view_widget{Glib::wrap(GTK_WIDGET(web_view))};
-        web_view_widget->set_name("browser_webview");
-        web_view_widget->set_vexpand(true);
-        browserScroller->set_child(*web_view_widget);
+        WebKitWebView *webView{WEBKIT_WEB_VIEW(webkit_web_view_new())};
+        webkit_web_view_load_uri(webView, "https://www.google.com/");
+        Gtk::Widget *webViewWidget{Glib::wrap(GTK_WIDGET(webView))};
+        webViewWidget->set_name("browser_webview");
+        webViewWidget->set_vexpand(true);
+        browserScroller->set_child(*webViewWidget);
     }
 
     add_window(*mainWindow);
