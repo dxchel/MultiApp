@@ -17,10 +17,10 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Install Dependencies
-      run: sudo apt install libgtkmm-4.0-dev libwebkitgtk-6.0-dev make
-    - name: Tests
+      run: sudo apt update && sudo apt full-upgrade && sudo apt install make libgtkmm-4.0-dev libwebkitgtk-6.0-dev
+    - name: Build Tests
       run: make tests
     - name: Run Tests
       run: ./multiapp_tests.exe
-    - name: make
+    - name: Build Project
       run: make
