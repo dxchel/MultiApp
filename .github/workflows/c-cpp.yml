@@ -17,11 +17,11 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Install Dependencies
-      run: sudo apt update && sudo apt upgrade && sudo apt install make libgtkmm-4.0-dev libwebkitgtk-6.0-dev
+      run: sudo apt update && sudo apt upgrade && sudo apt install xvfb make libgtkmm-4.0-dev libwebkitgtk-6.0-dev
     - name: Build Tests
       run: make tests
     - name: Run Display Mock
-      run: Xvfb
+      run: Xvfb&
     - name: Run Tests
       run: ./multiapp_tests.exe
     - name: Build Project
