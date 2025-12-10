@@ -20,6 +20,8 @@ jobs:
       run: sudo apt update && sudo apt upgrade && sudo apt install make libgtkmm-4.0-dev libwebkitgtk-6.0-dev
     - name: Build Tests
       run: make tests
+    - name: Run Display Mock
+      run: Xvfb
     - name: Run Tests
       run: ./multiapp_tests.exe
     - name: Build Project
