@@ -1,5 +1,5 @@
 PROGRAM=multiapp
-OBJECTS=build/main_application.o build/main.o
+OBJECTS=build/browser_app.o build/main_application.o build/main.o
 
 CC=g++
 CFLAGS=$(shell pkg-config --cflags gtkmm-4.0 webkitgtk-6.0)

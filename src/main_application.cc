@@ -1,4 +1,5 @@
 #include "../include/main_application.hpp"
+#include "../include/browser_app.hpp"
 
 
 MainApplication::MainApplication() :
@@ -17,58 +18,43 @@ void MainApplication::on_activate()
 
 Gtk::Window* MainApplication::create_window()
 {
-    // Load the GtkBuilder file and instantiate its widgets:
-    auto refBuilder{Gtk::Builder::create()};
-    try
-    {
-        refBuilder->add_from_file("res/multi.ui");
-    }
-    catch(const Glib::FileError& ex)
-    {
-        std::cerr << "FileError: " << ex.what() << std::endl;
-        return nullptr;
-    }
-    catch(const Glib::MarkupError& ex)
-    {
-        std::cerr << "MarkupError: " << ex.what() << std::endl;
-        return nullptr;
-    }
-    catch(const Gtk::BuilderError& ex)
-    {
-        std::cerr << "BuilderError: " << ex.what() << std::endl;
-        return nullptr;
-    }
+    mainWindow = Gtk::manage(new Gtk::ApplicationWindow());
+    mainWindow->set_default_size(800, 600);
+    mainWindow->maximize();
+    mainWindow->set_title("GUI MultiApp");
+    mainWindow->set_default_icon_name("applications-engineering");
 
-    // Get the GtkBuilder-instantiated dialog:
-    mainWindow = refBuilder->get_widget<Gtk::Window>("main_app_window");
-    if(!mainWindow)
-    {
-        std::cerr << "Could not get the main window." << std::endl;
-        return nullptr;
-    }
-    // A window can be added to an application with Gtk::Application::add_window()
-    // or Gtk::Window::set_application(). When all added windows have been hidden
-    // or removed, the application stops running (Gtk::Application::run() returns()),
-    // unless Gio::Application::hold() has been called.
-    mainWindow->signal_hide().connect([this] () { delete mainWindow; });
+    auto mainBox = Gtk::manage(new Gtk::Box());
+    mainBox->set_orientation(Gtk::Orientation::VERTICAL);
+    mainWindow->set_child(*mainBox);
 
+    auto mainNotebook = Gtk::manage(new Gtk::Notebook());
+    mainNotebook->set_vexpand(true);
 
-    // Get the GtkBuilder-instantiated button, and connect a signal handler:
-    auto homeButton{refBuilder->get_widget<Gtk::Button>("home_button")};
-    if(homeButton)
-        homeButton->signal_clicked().connect([this] () { delete mainWindow; });
+    auto browserBox = Gtk::manage(new Browser());
+    mainNotebook->append_page(*browserBox);
 
-    // Get the GtkBuilder-instantiated browser_scroller, and connect WebKitWebView
-    auto browserScroller{refBuilder->get_widget<Gtk::ScrolledWindow>("browser_scroller")};
-    if(browserScroller)
-    {
-        WebKitWebView *webView{WEBKIT_WEB_VIEW(webkit_web_view_new())};
-        webkit_web_view_load_uri(webView, "https://www.google.com/");
-        Gtk::Widget *webViewWidget{Glib::wrap(GTK_WIDGET(webView))};
-        webViewWidget->set_name("browser_webview");
-        webViewWidget->set_vexpand(true);
-        browserScroller->set_child(*webViewWidget);
-    }
+    auto label_browser = Gtk::manage(new Gtk::Label());
+    label_browser->set_text("Browser");
+    mainNotebook->set_tab_label(*browserBox, *label_browser);
+    
+    auto label2 = Gtk::manage(new Gtk::Label());
+    label2->set_text("Temp Fractal Placeholder");
+    label2->set_justify(Gtk::Justification::CENTER);
+    label2->set_hexpand(true);
+    mainNotebook->append_page(*label2);
+    
+    auto label_fractal = Gtk::manage(new Gtk::Label());
+    label_fractal->set_text("Fractal");
+    mainNotebook->set_tab_label(*label2, *label_fractal);
+    mainNotebook->set_current_page(0);
+    mainBox->insert_child_at_start(*mainNotebook);
+
+    auto footLabel = Gtk::manage(new Gtk::Label());
+    footLabel->set_text("Welcome to MultiApp!");
+    footLabel->set_justify(Gtk::Justification::CENTER);
+    footLabel->set_hexpand(true);
+    mainBox->insert_child_after(*footLabel, *mainNotebook);
 
     add_window(*mainWindow);
     return mainWindow;

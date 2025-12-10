@@ -2,6 +2,6 @@
 
 
 int main(int argc, char** argv){
-    auto mainApp = MainApplication::create();
-    return mainApp->run(argc, argv);
+    auto main_app = MainApplication::create();
+    return main_app->run(argc, argv);
 }
