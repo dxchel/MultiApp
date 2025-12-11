@@ -1,7 +1,7 @@
 PROGRAM=multiapp
 OBJECTS=build/browser_app.o build/main_application.o
 MAIN=build/main.o
-TESTS=test_build/main_application_tests.o test_build/main.o
+TESTS=test_build/main_application_tests.o test_build/browser_app_tests.o test_build/main.o
 
 CC=g++
 CFLAGS=$(shell pkg-config --cflags gtkmm-4.0 webkitgtk-6.0)

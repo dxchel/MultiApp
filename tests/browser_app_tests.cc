@@ -3,56 +3,56 @@
 
 BrowserAppError browserAppTests()
 {
-    auto browser = Gtk::manage(new Browser());
-    if(!browser || browser->get_name() != "main_browser")
+    auto browser {dynamic_cast<Gtk::Box *>(Gtk::manage(new Browser()))};
+    if(!browser)
     {
         std::cerr << "Browser Box Error." << std::endl;
         return BrowserAppError::browser_error;
     }
-    auto header = browser->get_first_child();
-    if(!header || header->get_name() != "header_bar")
+    auto header {dynamic_cast<Gtk::Box *>(browser->get_first_child())};
+    if(!header)
     {
-        std::cerr << "Header Bar Error." << std::endl;
+        std::cerr << "Header Bar Error."  << std::endl;
         return BrowserAppError::header_error;
     }
-    auto back = header->get_first_child();
-    if(!back || back->get_name() != "back_button")
+    auto back {dynamic_cast<Gtk::Button *>(header->get_first_child())};
+    if(!back)
     {
         std::cerr << "Back Button Error in header." << std::endl;
         return BrowserAppError::back_error;
     }
-    auto forward = back->get_next_sibling();
-    if(!forward || forward->get_name() != "forward_button")
+    auto forward {dynamic_cast<Gtk::Button *>(back->get_next_sibling())};
+    if(!forward)
     {
         std::cerr << "Forward Button Error in header." << std::endl;
         return BrowserAppError::forward_error;
     }
-    auto home = forward->get_next_sibling();
-    if(!home || home->get_name() != "home_button")
+    auto home {dynamic_cast<Gtk::Button *>(forward->get_next_sibling())};
+    if(!home)
     {
         std::cerr << "Home Button Error in header." << std::endl;
         return BrowserAppError::home_error;
     }
-    auto reload = home->get_next_sibling();
-    if(!reload || reload->get_name() != "reload_button")
+    auto reload {dynamic_cast<Gtk::Button *>(home->get_next_sibling())};
+    if(!reload)
     {
         std::cerr << "Reload Button Error in header." << std::endl;
         return BrowserAppError::reload_error;
     }
-    auto entry = reload->get_next_sibling();
-    if(!entry || entry->get_name() != "header_entry")
+    auto entry {dynamic_cast<Gtk::Entry *>(reload->get_next_sibling())};
+    if(!entry)
     {
         std::cerr << "Entry Button Error in header." << std::endl;
         return BrowserAppError::entry_error;
     }
-    auto enter = entry->get_next_sibling();
-    if(!enter || enter->get_name() != "enter_button")
+    auto enter {dynamic_cast<Gtk::Button *>(entry->get_next_sibling())};
+    if(!enter)
     {
         std::cerr << "Enter Button Error in header." << std::endl;
         return BrowserAppError::enter_error;
     }
-    auto menu = enter->get_next_sibling();
-    if(!menu || menu->get_name() != "menu_button")
+    auto menu {dynamic_cast<Gtk::MenuButton *>(enter->get_next_sibling())};
+    if(!menu)
     {
         std::cerr << "Menu Button Error in header." << std::endl;
         return BrowserAppError::menu_error;
