@@ -1,10 +1,10 @@
 #include "../include/browser_app.hpp"
 
 
-Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
+Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}, scroller {}
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
-    auto refBuilder{Gtk::Builder::create()};
+    auto refBuilder {Gtk::Builder::create()};
     try
     {
         refBuilder->add_from_file("res/gtk/browser_app.ui");
@@ -32,16 +32,16 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
     scroller = Gtk::manage(new Gtk::ScrolledWindow());
     webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
     webkit_web_view_load_uri(webView, "https://www.google.com/");
-    Gtk::Widget *webViewWidget{Gtk::manage(Glib::wrap(GTK_WIDGET(webView)))};
+    Gtk::Widget *webViewWidget {Gtk::manage(Glib::wrap(GTK_WIDGET(webView)))};
     webViewWidget->set_name("browser_webview");
     webViewWidget->set_vexpand(true);
     scroller->set_child(*webViewWidget);
 
     // Get the GtkBuilder-instantiated buttons, and connect a signal handler
-    auto homeButton{refBuilder->get_widget<Gtk::Button>("home_button")};
+    auto homeButton {refBuilder->get_widget<Gtk::Button>("home_button")};
     if(homeButton)
         homeButton->signal_clicked().connect([this](){ webkit_web_view_load_uri(webView, "https://www.google.com");});
-    auto refreshButton{refBuilder->get_widget<Gtk::Button>("reload_button")};
+    auto refreshButton {refBuilder->get_widget<Gtk::Button>("reload_button")};
     if(refreshButton)
         refreshButton->signal_clicked().connect([this](){ webkit_web_view_reload(webView);});
 
