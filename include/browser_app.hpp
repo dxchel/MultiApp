@@ -3,7 +3,9 @@
 
 #include <gtkmm.h>
 #include <webkit/webkit.h>
+
 #include <iostream>
+#include <regex>
 
 
 enum class BrowserAppError
@@ -27,6 +29,8 @@ class Browser : public Gtk::Box
     WebKitWebView *webView;
     Gtk::Box *header;
     Gtk::ScrolledWindow *scroller;
+    Gtk::Entry *urlEntry;
+    void url_load();
 
 public:
     Browser();
