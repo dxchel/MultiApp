@@ -24,9 +24,9 @@ enum class BrowserAppError
 
 class Browser : public Gtk::Box
 {
-    WebKitWebView *webView{};
-    Gtk::Box *header{};
-    Gtk::ScrolledWindow *scroller{};
+    WebKitWebView *webView;
+    Gtk::Box *header;
+    Gtk::ScrolledWindow *scroller;
 
 public:
     Browser();
