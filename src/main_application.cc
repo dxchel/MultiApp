@@ -1,6 +1,8 @@
 #include "../include/main_application.hpp"
 #include "../include/browser_app.hpp"
 
+#include <iostream>
+
 
 MainApplication::MainApplication() :
     Gtk::Application("org.xchel.multiapp", Gio::Application::Flags::HANDLES_OPEN) {}

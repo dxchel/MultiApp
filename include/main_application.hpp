@@ -3,6 +3,7 @@
 
 #include <gtkmm.h>
 
+
 enum class MainApplicationError {no_error, application_missing, window_missing, box_missing, notebook_missing, browser_missing, foot_missing};
 
 class MainApplication : public Gtk::Application

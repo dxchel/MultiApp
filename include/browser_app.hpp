@@ -5,6 +5,9 @@
 #include <webkit/webkit.h>
 #include <iostream>
 
+
+enum class BrowserAppError {no_error, browser_missing, header_missing, home_missing, reload_missing, scroller_missing, webview_missing};
+
 class Browser : public Gtk::Box
 {
     WebKitWebView *webView{};
