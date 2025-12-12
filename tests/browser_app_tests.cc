@@ -1,7 +1,9 @@
 #include "include/tests.hpp"
 
 
-BrowserAppError browserAppTests()
+BrowserAppTester::BrowserAppTester() : browser (Gtk::manage(new Browser())) {};
+
+BrowserAppError BrowserAppTester::browserAppStructureTests()
 {
     auto browser {dynamic_cast<Gtk::Box *>(Gtk::manage(new Browser()))};
     if(!browser)
@@ -57,5 +59,11 @@ BrowserAppError browserAppTests()
         std::cerr << "Menu Button Error in header." << std::endl;
         return BrowserAppError::menu_error;
     }
+    return BrowserAppError::no_error;
+}
+
+BrowserAppError BrowserAppTester::browserAppFunctionalTests()
+{
+    // Browser Functionality tests placeholder
     return BrowserAppError::no_error;
 }

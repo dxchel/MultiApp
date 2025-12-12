@@ -30,7 +30,7 @@ class Browser : public Gtk::Box
     Gtk::Box *header;
     Gtk::ScrolledWindow *scroller;
     Gtk::Entry *urlEntry;
-    void url_load();
+    void url_load(std::string url);
 
 public:
     Browser();
