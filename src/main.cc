@@ -3,8 +3,6 @@
 
 int main(int argc, char** argv)
 {
-    MainApplicationTester mainAppTester {};
-    mainAppTester.mainApplicationStructureTests();
-    BrowserAppTester browserAppTester {};
+    auto mainApp {MainApplication::create()};
     return mainApp->run(argc, argv);
 }
