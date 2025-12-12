@@ -1,11 +1,12 @@
 #include "../include/browser_app.hpp"
 
 
-void Browser::url_load()
+void Browser::url_load(std::string url="")
 {
-    std::string url {urlEntry->get_text()};
+    if(url == "")
+        url = urlEntry->get_text();
     if(url.find(" ") > url.size() &&
-        std::regex_search(url, std::regex("^[A-Za-z0-9.]+\\.[A-Za-z0-9]+$")))
+        std::regex_search(url, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$")))
     {
         if(url.find("www.") > url.size())
             url = "www." + url;
@@ -51,7 +52,6 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
     // Get the GtkBuilder-instantiated browser_scroller, and connect WebKitWebView with home site loaded
     scroller = Gtk::manage(new Gtk::ScrolledWindow());
     webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
-    webkit_web_view_load_uri(webView, "https://www.google.com/");
     Gtk::Widget *webViewWidget {Gtk::manage(Glib::wrap(GTK_WIDGET(webView)))};
     webViewWidget->set_name("browser_webview");
     webViewWidget->set_vexpand(true);
@@ -74,18 +74,10 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
         });
     auto homeButton {refBuilder->get_widget<Gtk::Button>("home_button")};
     if(homeButton)
-        homeButton->signal_clicked().connect([this]()
-        {
-            webkit_web_view_load_uri(webView, "https://www.google.com");
-            urlEntry->set_text(webkit_web_view_get_uri(webView));
-        });
+        homeButton->signal_clicked().connect([this](){ url_load("https://www.google.com");});
     auto refreshButton {refBuilder->get_widget<Gtk::Button>("reload_button")};
     if(refreshButton)
-        refreshButton->signal_clicked().connect([this]()
-        {
-            webkit_web_view_reload(webView);
-            urlEntry->set_text(webkit_web_view_get_uri(webView));
-        });
+        refreshButton->signal_clicked().connect([this](){ webkit_web_view_reload(webView);});
     urlEntry = refBuilder->get_widget<Gtk::Entry>("header_entry");
     auto enterButton {refBuilder->get_widget<Gtk::Button>("enter_button")};
     if(urlEntry){
@@ -93,6 +85,7 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
         if(enterButton)
             enterButton->signal_clicked().connect([this](){ url_load();});
     }
+    url_load("https://www.google.com/");
 
     // Insert elements into Browser Box
     insert_child_at_start(*header);
