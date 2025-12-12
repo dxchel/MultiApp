@@ -1,9 +1,10 @@
 #include "include/tests.hpp"
 
 
-MainApplicationError mainApplicationTests()
+MainApplicationTester::MainApplicationTester() : mainApp (MainApplication::create()) {};
+
+MainApplicationError MainApplicationTester::mainApplicationStructureTests()
 {
-    auto mainApp = MainApplication::create();
     if(!mainApp)
     {
         std::cerr << "Main Application Error." << std::endl;

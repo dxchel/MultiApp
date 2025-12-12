@@ -4,7 +4,9 @@
 int main(int argc, char** argv)
 {
     int exit_code {};
-    exit_code += static_cast<int>(mainApplicationTests());
-    exit_code += static_cast<int>(browserAppTests());
+    MainApplicationTester mainApplicationTester {};
+    BrowserAppTester browserAppTester {};
+    exit_code += static_cast<int>(mainApplicationTester.mainApplicationStructureTests());
+    exit_code += static_cast<int>(browserAppTester.browserAppStructureTests());
     return exit_code;
 }
