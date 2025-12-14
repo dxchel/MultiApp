@@ -11,6 +11,7 @@ In the future it should have apps that work using SQL, SDL and even web requests
 - [MultiApp](#-multiapp)
   - [Project Structure](#-project-structure)
   - [Roadmap](#️-roadmap)
+  - [Requirements](#️-requirements)
 
 ## 🧬 Project Structure
 
@@ -32,3 +33,15 @@ MultiApp/            // Makefile/README
 - 🚧 Simple internet browser
 - ❌ Fractal creator
 - 🏗️ Other goodies in the future
+
+## 🏗️ Requirements
+
+In Arch based OS:
+
+- gtkmm-4.0
+- webkitgtk-6.0
+
+In Ubuntu/Debian based OS:
+
+- libgtkmm-4.0-dev
+- libwebkitgtk-6.0-dev
