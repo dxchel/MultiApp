@@ -29,11 +29,21 @@ class Browser : public Gtk::Box
     WebKitWebView *webView;
     Gtk::Box *header;
     Gtk::ScrolledWindow *scroller;
-    Gtk::Entry *urlEntry;
-    void url_load(std::string url);
+    Gtk::Button *backButton;
+    Gtk::Button *forwardButton;
+    Gtk::Button *homeButton;
+    Gtk::Button *reloadButton;
+    Gtk::Entry *uriEntry;
+    Gtk::Button *enterButton;
+    Gtk::MenuButton *menuButton;
+
+    void entry_uri_load(std::string uri);
 
 public:
     Browser();
+    static void web_view_load_changed(WebKitWebView *web_view,
+                                      WebKitLoadEvent load_event,
+                                      gpointer user_data);
 };
 
 #endif

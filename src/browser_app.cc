@@ -1,25 +1,32 @@
 #include "../include/browser_app.hpp"
 
 
-void Browser::url_load(std::string url="")
+void Browser::entry_uri_load(std::string uri="")
 {
-    if(url == "")
-        url = urlEntry->get_text();
-    if(url.find(" ") > url.size() &&
-        std::regex_search(url, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$")))
+    if(uri == "")
+        // Get entry text
+        uri = uriEntry->get_text();
+    if(uri.find(" ") > uri.size() &&
+        std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$")))
     {
-        if(url.find("www.") > url.size())
-            url = "www." + url;
-        if(url.find("https://") > url.size())
-            url = "https://" + url;
+        if(uri.find("http") > uri.size())
+        {
+            if(uri.find("www.") > uri.size())
+                uri = "www." + uri;
+            uri = "https://" + uri;
+        }else if(uri.find("www.") > uri.size())
+            std::regex_replace(uri, std::regex("https?://"), "https://www.");
     }
     else
     {
-        std::replace(url.begin(), url.end(), ' ', '+');
-        url = "https://www.google.com/search?q=" + url;
+        std::replace(uri.begin(), uri.end(), ' ', '+');
+        uri = "https://www.google.com/search?q=" + uri;
     }
-    webkit_web_view_load_uri(webView, url.c_str());
-    urlEntry->set_text(url);
+    if(std::regex_replace(webkit_web_view_get_uri(webView), std::regex("(https?://|www\\.)"), "") !=
+        std::regex_replace(uri, std::regex("(https?://|www\\.)"), ""))
+        webkit_web_view_load_uri(webView, uri.c_str());
+    else
+        webkit_web_view_reload(webView);
 }
 
 Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}, scroller {}
@@ -58,37 +65,89 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
     scroller->set_child(*webViewWidget);
 
     // Get the GtkBuilder-instantiated buttons, and connect a signal handler
-    auto backButton {refBuilder->get_widget<Gtk::Button>("back_button")};
+    backButton = refBuilder->get_widget<Gtk::Button>("back_button");
+    forwardButton = refBuilder->get_widget<Gtk::Button>("forward_button");
+    homeButton = refBuilder->get_widget<Gtk::Button>("home_button");
+    reloadButton = refBuilder->get_widget<Gtk::Button>("reload_button");
+    uriEntry = refBuilder->get_widget<Gtk::Entry>("header_entry");
+    enterButton = refBuilder->get_widget<Gtk::Button>("enter_button");
+    menuButton = refBuilder->get_widget<Gtk::MenuButton>("header_menu");
+
+    // Add Callbacks
     if(backButton)
-        backButton->signal_clicked().connect([this]()
-        {
-            webkit_web_view_go_back(webView);
-            urlEntry->set_text(webkit_web_view_get_uri(webView));
-        });
-    auto forwardButton {refBuilder->get_widget<Gtk::Button>("forward_button")};
+        backButton->signal_clicked().connect
+        (
+            [this](){ webkit_web_view_go_back(webView);}
+        );
     if(forwardButton)
-        forwardButton->signal_clicked().connect([this]()
-        {
-            webkit_web_view_go_forward(webView);
-            urlEntry->set_text(webkit_web_view_get_uri(webView));
-        });
-    auto homeButton {refBuilder->get_widget<Gtk::Button>("home_button")};
+        forwardButton->signal_clicked().connect
+        (
+            [this](){ webkit_web_view_go_forward(webView);}
+        );
     if(homeButton)
-        homeButton->signal_clicked().connect([this](){ url_load("https://www.google.com");});
-    auto refreshButton {refBuilder->get_widget<Gtk::Button>("reload_button")};
-    if(refreshButton)
-        refreshButton->signal_clicked().connect([this](){ webkit_web_view_reload(webView);});
-    urlEntry = refBuilder->get_widget<Gtk::Entry>("header_entry");
-    auto enterButton {refBuilder->get_widget<Gtk::Button>("enter_button")};
-    if(urlEntry){
-        urlEntry->signal_activate().connect([this](){ url_load();});
+        homeButton->signal_clicked().connect
+        (
+            [this](){ entry_uri_load("https://www.github.com/dxchel/MultiApp");}
+    
+        );
+    if(reloadButton)
+        reloadButton->signal_clicked().connect
+        (
+            [this]()
+            {
+                webkit_web_view_is_loading(webView) ?
+                webkit_web_view_stop_loading(webView) :
+                webkit_web_view_reload(webView);
+            }
+        );
+    if(uriEntry){
+        uriEntry->signal_activate().connect([this](){ entry_uri_load();});
         if(enterButton)
-            enterButton->signal_clicked().connect([this](){ url_load();});
+            enterButton->signal_clicked().connect([this](){ entry_uri_load();});
     }
-    url_load("https://www.google.com/");
+    // Menu button not visible as no usage needed for the moment
+    if(menuButton) menuButton->set_visible(false);
+
+    g_signal_connect(webView, "load-changed", G_CALLBACK(web_view_load_changed), this);
+    webkit_web_view_load_uri(webView, "https://www.github.com/dxchel/MultiApp");
 
     // Insert elements into Browser Box
     insert_child_at_start(*header);
     insert_child_after(*scroller, *header);
-    set_name("main_browser");
+}
+
+void Browser::web_view_load_changed(WebKitWebView *webView,
+                                    WebKitLoadEvent loadEvent,
+                                    gpointer userData)
+{
+    auto uri {webkit_web_view_get_uri(webView)};
+    auto browser {static_cast<Browser*>(userData)};
+    switch (loadEvent) {
+        case WEBKIT_LOAD_STARTED:
+            browser->backButton->set_sensitive(webkit_web_view_can_go_back(webView));
+            browser->forwardButton->set_sensitive(webkit_web_view_can_go_forward(webView));
+            browser->reloadButton->set_icon_name("archive-remove");
+            browser->uriEntry->set_sensitive(false);
+            browser->enterButton->set_sensitive(false);
+            std::cout << "Load started with provisional URI: " << uri << std::endl;
+            break;
+
+        case WEBKIT_LOAD_REDIRECTED:
+            std::cout << "Redirected to URI: " << uri << std::endl;
+            break;
+
+        case WEBKIT_LOAD_COMMITTED:
+            std::cout << "URL changed/committed to: " << uri << std::endl;
+            break;
+
+        case WEBKIT_LOAD_FINISHED:
+            browser->backButton->set_sensitive(webkit_web_view_can_go_back(webView));
+            browser->forwardButton->set_sensitive(webkit_web_view_can_go_forward(webView));
+            browser->reloadButton->set_icon_name("reload");
+            browser->uriEntry->set_sensitive(true);
+            browser->uriEntry->set_text(uri);
+            browser->enterButton->set_sensitive(true);
+            std::cout << "Load finished." << std::endl;
+            break;
+    }
 }
