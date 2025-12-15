@@ -16,15 +16,14 @@ In the future it should have apps that work using SQL, SDL and even web requests
 ## 🧬 Project Structure
 
 ``` C++
-MultiApp/            // Makefile/README
-│
+MultiApp/            // Core application files
 ├── src/             // C++ Source Files
-├── include/         // C++ Header Files
+│   └── include/     // C++ Header Files
+│
 ├── res/             // Misc Resources
-│   │
 │   └── gtk/         // Gtk UI Resources
+│
 └── tests/           // Test Source Files
-    │
     └── include/     // Tests Header Files
 ```
 
