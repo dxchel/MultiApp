@@ -1,4 +1,4 @@
-#include "../include/browser_app.hpp"
+#include "include/browser_app.hpp"
 
 
 std::string Browser::get_uri_root(const std::string &uri)
@@ -7,7 +7,7 @@ std::string Browser::get_uri_root(const std::string &uri)
     return result;
 }
 
-void Browser::entry_uri_load(std::string uri)
+void Browser::entry_uri_load(std::string uri) const
 {
     if(uri == "")
         // Get entry text
@@ -92,7 +92,7 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
     if(homeButton)
         homeButton->signal_clicked().connect
         (
-            [this](){ entry_uri_load("https://www.github.com/dxchel/MultiApp");}
+            [this](){ entry_uri_load(HOME_URL);}
     
         );
     if(reloadButton)
@@ -114,7 +114,7 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
     if(menuButton) menuButton->set_visible(false);
 
     g_signal_connect(webView, "load-changed", G_CALLBACK(web_view_load_changed), this);
-    webkit_web_view_load_uri(webView, "https://www.github.com/dxchel/MultiApp");
+    webkit_web_view_load_uri(webView, HOME_URL);
 
     // Insert elements into Browser Box
     insert_child_at_start(*header);
