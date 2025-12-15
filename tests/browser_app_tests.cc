@@ -1,11 +1,13 @@
 #include "include/tests.hpp"
 
+#include <iostream>
+#include <regex>
+
 
 BrowserAppTester::BrowserAppTester() : browser (Gtk::manage(new Browser())) {};
 
-BrowserAppError BrowserAppTester::browserAppStructureTests()
+BrowserAppError BrowserAppTester::browserAppStructureTests() const
 {
-    auto browser {dynamic_cast<Gtk::Box *>(Gtk::manage(new Browser()))};
     if(!browser)
     {
         std::cerr << "Browser Box Error." << std::endl;
@@ -62,8 +64,58 @@ BrowserAppError BrowserAppTester::browserAppStructureTests()
     return BrowserAppError::no_error;
 }
 
-BrowserAppError BrowserAppTester::browserAppFunctionalTests()
+BrowserAppError BrowserAppTester::browserAppFunctionalTests() const
 {
-    // Browser Functionality tests placeholder
+    // TODO: Need to check how to simulate button clicks instead of calling functions manually
+    // TODO: Need to check how to make webView load pages without showing anything
+    /*if(browser->backButton->get_sensitive())
+    {
+        std::cerr << "Back button not initialized as disabled." << std::endl;
+        return BrowserAppError::back_error;
+    }
+    if(browser->forwardButton->get_sensitive())
+    {
+        std::cerr << "Back button not initialized as disabled." << std::endl;
+        return BrowserAppError::forward_error;
+    }
+    if(Browser::get_uri_root(webkit_web_view_get_uri(browser->webView)) != "github.com/dxchel/MultiApp")
+    {
+        std::cerr << "WebView not initialized to https://www.github.com/dxchel/MultiApp." << std::endl;
+        return BrowserAppError::webview_error;
+    }*/
+    std::vector<std::string> urisToLoad
+    {
+        "google.com/",
+        "https://github.com/",
+        "www.github.com/",
+        "github.com/",
+        "roadmap.sh/",
+        "youtube.com/",
+        "www.github.com/dxchel/MultiApp/",
+        "Hello World",
+    };
+    std::string previousUri {""};
+    std::stack<std::string> uriStack {};
+    for(auto &uri : urisToLoad)
+    {
+        browser->uriEntry->set_text(uri);
+        browser->entry_uri_load();
+        if(Browser::get_uri_root(uri) != Browser::get_uri_root(previousUri))
+        {
+            uriStack.push(uri);
+            previousUri = uri;
+        }
+        webkit_web_view_go_back(browser->webView);
+        if(uri.find(' ') < uri.size())
+        {
+            std::replace(uri.begin(), uri.end(), ' ', '+');
+            uri = "https://www.google.com/search?q=" + uri;
+        }
+        if(Browser::get_uri_root(uri) != Browser::get_uri_root(webkit_web_view_get_uri(browser->webView)))
+        {
+            std::cerr << "WebView not directed to " << uri << ", got " << webkit_web_view_get_uri(browser->webView) << " instead." << std::endl;
+            return BrowserAppError::webview_error;
+        }
+    }
     return BrowserAppError::no_error;
 }

@@ -1,9 +1,11 @@
 #include "include/tests.hpp"
 
+#include <iostream>
+
 
 MainApplicationTester::MainApplicationTester() : mainApp (MainApplication::create()) {};
 
-MainApplicationError MainApplicationTester::mainApplicationStructureTests()
+MainApplicationError MainApplicationTester::mainApplicationStructureTests() const
 {
     if(!mainApp)
     {

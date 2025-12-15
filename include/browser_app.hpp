@@ -26,6 +26,8 @@ enum class BrowserAppError
 
 class Browser : public Gtk::Box
 {
+    friend class BrowserAppTester;
+
     WebKitWebView *webView;
     Gtk::Box *header;
     Gtk::ScrolledWindow *scroller;
@@ -37,12 +39,13 @@ class Browser : public Gtk::Box
     Gtk::Button *enterButton;
     Gtk::MenuButton *menuButton;
 
-    void entry_uri_load(std::string uri);
+    static std::string get_uri_root(const std::string&);
+    void entry_uri_load(std::string uri="");
 
 public:
     Browser();
     static void web_view_load_changed(WebKitWebView *web_view,
-                                      WebKitLoadEvent load_event,
+                                      const WebKitLoadEvent load_event,
                                       gpointer user_data);
 };
 

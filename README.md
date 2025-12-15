@@ -32,7 +32,7 @@ MultiApp/            // Makefile/README
 
 - 🚧 Simple internet browser
 - ❌ Fractal creator
-- 🏗️ Other goodies in the future
+- 🔬 Other goodies in the future
 
 ## 🏗️ Requirements
 
