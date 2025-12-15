@@ -6,6 +6,22 @@
 
 
 /**
+ * @brief Contains MainApplication error types.
+ * 
+ * Enum containing the names of the MainApplication class possible errors.
+ * */
+enum class MainApplicationError
+{
+    no_error,
+    application_error,
+    window_error,
+    box_error,
+    notebook_error,
+    browser_error,
+    foot_error
+};
+
+/**
  * @brief Contains MainApplication object and tests.
  * 
  * Class to create an object with test functions for the MainApplication class,
@@ -36,6 +52,27 @@ public:
 
 
 /**
+ * @brief Contains Browser error types.
+ * 
+ * Enum with the names of the Browser class possible errors.
+ * */
+enum class BrowserAppError
+{
+    no_error,
+    browser_error,
+    header_error,
+    back_error,
+    forward_error,
+    home_error,
+    reload_error,
+    entry_error,
+    enter_error,
+    menu_error,
+    scroller_error,
+    webview_error
+};
+
+/**
  * @brief Contains Browser object and Structural/Functional tests.
  * 
  * Class to create an object with test functions for the Browser class,
@@ -43,6 +80,7 @@ public:
  * */
 class BrowserAppTester
 {
+
     Browser *browser;
 
 public:

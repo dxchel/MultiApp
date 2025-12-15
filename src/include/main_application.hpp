@@ -4,17 +4,6 @@
 #include <gtkmm.h>
 
 
-enum class MainApplicationError
-{
-    no_error,
-    application_error,
-    window_error,
-    box_error,
-    notebook_error,
-    browser_error,
-    foot_error
-};
-
 class MainApplication : public Gtk::Application
 {
     friend class MainApplicationTester;

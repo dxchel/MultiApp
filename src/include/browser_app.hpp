@@ -8,22 +8,6 @@
 #include <regex>
 
 
-enum class BrowserAppError
-{
-    no_error,
-    browser_error,
-    header_error,
-    back_error,
-    forward_error,
-    home_error,
-    reload_error,
-    entry_error,
-    enter_error,
-    menu_error,
-    scroller_error,
-    webview_error
-};
-
 class Browser : public Gtk::Box
 {
     friend class BrowserAppTester;
