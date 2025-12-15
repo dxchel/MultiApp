@@ -5,7 +5,7 @@ TESTS=test_build/main_application_tests.o test_build/browser_app_tests.o test_bu
 
 CC=g++
 CFLAGS=$(shell pkg-config --cflags gtkmm-4.0 webkitgtk-6.0)
-CFLAGS+= -Wall -Wextra -Werror -g -O3 -std=c++20
+CFLAGS+= -Wall -Wextra -Werror -g -O0 -std=c++20
 
 LDFLAGS=$(shell pkg-config --libs gtkmm-4.0 webkitgtk-6.0)
 
