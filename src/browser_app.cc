@@ -126,7 +126,7 @@ void Browser::web_view_load_changed(WebKitWebView *webView,
         case WEBKIT_LOAD_STARTED:
             browser->backButton->set_sensitive(webkit_web_view_can_go_back(webView));
             browser->forwardButton->set_sensitive(webkit_web_view_can_go_forward(webView));
-            browser->reloadButton->set_icon_name("archive-remove");
+            browser->reloadButton->set_icon_name("gtk-stop");
             browser->uriEntry->set_sensitive(false);
             browser->enterButton->set_sensitive(false);
             std::cout << "Load started with provisional URI: " << uri << std::endl;
@@ -143,7 +143,7 @@ void Browser::web_view_load_changed(WebKitWebView *webView,
         case WEBKIT_LOAD_FINISHED:
             browser->backButton->set_sensitive(webkit_web_view_can_go_back(webView));
             browser->forwardButton->set_sensitive(webkit_web_view_can_go_forward(webView));
-            browser->reloadButton->set_icon_name("reload");
+            browser->reloadButton->set_icon_name("gtk-convert");
             browser->uriEntry->set_sensitive(true);
             browser->uriEntry->set_text(uri);
             browser->enterButton->set_sensitive(true);

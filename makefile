@@ -5,28 +5,28 @@ TESTS=test_build/main_application_tests.o test_build/browser_app_tests.o test_bu
 
 CC=g++
 CFLAGS=$(shell pkg-config --cflags gtkmm-4.0 webkitgtk-6.0)
-CFLAGS+= -Wall -g -std=c++20
+CFLAGS+= -Wall -Wextra -Werror -g -O3 -std=c++20
 
 LDFLAGS=$(shell pkg-config --libs gtkmm-4.0 webkitgtk-6.0)
 
 multiapp: $(OBJECTS) $(MAIN)
 	$(CC) $(OBJECTS) $(MAIN) $(LDFLAGS) -o $(PROGRAM).exe
 
-tests: $(OBJECTS) $(TESTS)
-	$(CC) $(OBJECTS) $(TESTS) $(LDFLAGS) -o $(PROGRAM)_tests.exe
-
 $(OBJECTS): | build
-$(TESTS): | test_build
 
 build:
-	if [ ! -d build ]; then mkdir build; fi
-
-test_build:
-	if [ ! -d test_build ]; then mkdir test_build; fi
+	mkdir build
 
 build/%.o : src/%.cc $(wildcard include/%.hpp)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+tests: $(OBJECTS) $(TESTS)
+	$(CC) $(OBJECTS) $(TESTS) $(LDFLAGS) -o $(PROGRAM)_tests.exe
+
+$(TESTS): | test_build
+
+test_build:
+	mkdir test_build
 
 test_build/%.o : tests/%.cc
 	$(CC) $(CFLAGS) -c $< -o $@
