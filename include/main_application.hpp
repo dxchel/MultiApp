@@ -17,8 +17,9 @@ enum class MainApplicationError
 
 class MainApplication : public Gtk::Application
 {
-    Gtk::Window *mainWindow;
     friend class MainApplicationTester;
+
+    Gtk::Window *mainWindow;
 
     Gtk::Window* create_window();
 

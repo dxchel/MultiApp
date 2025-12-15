@@ -11,7 +11,7 @@ class MainApplicationTester
 
 public:
     MainApplicationTester();
-    MainApplicationError mainApplicationStructureTests();
+    MainApplicationError mainApplicationStructureTests() const;
 };
 
 class BrowserAppTester
@@ -20,8 +20,8 @@ class BrowserAppTester
 
 public:
     BrowserAppTester();
-    BrowserAppError browserAppStructureTests();
-    BrowserAppError browserAppFunctionalTests();
+    BrowserAppError browserAppStructureTests() const;
+    BrowserAppError browserAppFunctionalTests() const;
 };
 
 #endif

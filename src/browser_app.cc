@@ -1,12 +1,18 @@
 #include "../include/browser_app.hpp"
 
 
-void Browser::entry_uri_load(std::string uri="")
+std::string Browser::get_uri_root(const std::string &uri)
+{
+    std::string result {std::regex_replace(uri, std::regex("(https?://|www\\.)"), "")};
+    return result;
+}
+
+void Browser::entry_uri_load(std::string uri)
 {
     if(uri == "")
         // Get entry text
         uri = uriEntry->get_text();
-    if(uri.find(" ") > uri.size() &&
+    if(uri.find(' ') > uri.size() &&
         std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$")))
     {
         if(uri.find("http") > uri.size())
@@ -22,8 +28,7 @@ void Browser::entry_uri_load(std::string uri="")
         std::replace(uri.begin(), uri.end(), ' ', '+');
         uri = "https://www.google.com/search?q=" + uri;
     }
-    if(std::regex_replace(webkit_web_view_get_uri(webView), std::regex("(https?://|www\\.)"), "") !=
-        std::regex_replace(uri, std::regex("(https?://|www\\.)"), ""))
+    if(get_uri_root(webkit_web_view_get_uri(webView)) != get_uri_root(uri))
         webkit_web_view_load_uri(webView, uri.c_str());
     else
         webkit_web_view_reload(webView);
@@ -117,7 +122,7 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
 }
 
 void Browser::web_view_load_changed(WebKitWebView *webView,
-                                    WebKitLoadEvent loadEvent,
+                                    const WebKitLoadEvent loadEvent,
                                     gpointer userData)
 {
     auto uri {webkit_web_view_get_uri(webView)};
