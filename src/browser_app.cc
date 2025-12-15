@@ -7,7 +7,7 @@ std::string Browser::get_uri_root(const std::string &uri)
     return result;
 }
 
-void Browser::entry_uri_load(std::string uri)
+void Browser::entry_uri_load(std::string uri) const
 {
     if(uri == "")
         // Get entry text

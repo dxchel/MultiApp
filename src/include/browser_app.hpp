@@ -40,7 +40,7 @@ class Browser : public Gtk::Box
     Gtk::MenuButton *menuButton;
 
     static std::string get_uri_root(const std::string&);
-    void entry_uri_load(std::string uri="");
+    void entry_uri_load(std::string uri="") const;
 
 public:
     Browser();
