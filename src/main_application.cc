@@ -1,5 +1,5 @@
-#include "../include/main_application.hpp"
-#include "../include/browser_app.hpp"
+#include "include/main_application.hpp"
+#include "include/browser_app.hpp"
 
 #include <iostream>
 

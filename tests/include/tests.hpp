@@ -1,8 +1,8 @@
 #ifndef _TESTERS_
 #define _TESTERS_
 
-#include "../../include/main_application.hpp"
-#include "../../include/browser_app.hpp"
+#include "../../src/include/main_application.hpp"
+#include "../../src/include/browser_app.hpp"
 
 
 class MainApplicationTester

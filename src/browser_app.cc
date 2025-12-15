@@ -1,4 +1,4 @@
-#include "../include/browser_app.hpp"
+#include "include/browser_app.hpp"
 
 
 std::string Browser::get_uri_root(const std::string &uri)
