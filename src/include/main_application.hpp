@@ -14,9 +14,17 @@ class MainApplication : public Gtk::Application
 {
     friend class MainApplicationTester;
 
-    Gtk::Window *mainWindow;
+    Gtk::ApplicationWindow *mainWindow;
 
-    Gtk::Window* create_window();
+    /**
+     * @brief Creates ApplicationWindow to show.
+     * 
+     * Creates and populates the main ApplicationWindow using
+     * res/gtk/main_app.ui file as base and adding Apps into it.
+     * 
+     * @return New ApplicationWindow to use in the program.
+     */
+    Gtk::ApplicationWindow* create_window();
 
 protected:
     /**

@@ -19,51 +19,33 @@ void MainApplication::on_activate()
     create_window()->present();
 }
 
-Gtk::Window* MainApplication::create_window()
+Gtk::ApplicationWindow* MainApplication::create_window()
 {
-    // Main Window where everything is placed
-    mainWindow = Gtk::manage(new Gtk::ApplicationWindow());
-    mainWindow->set_default_size(800, 600);
-    mainWindow->maximize();
-    mainWindow->set_title("GUI MultiApp");
-    mainWindow->set_default_icon_name("applications-engineering");
-
-    // Main box containing Notebook and General status label
-    auto mainBox {Gtk::manage(new Gtk::Box())};
-    mainBox->set_orientation(Gtk::Orientation::VERTICAL);
-    mainWindow->set_child(*mainBox);
-
-    // Main notebook to switch apps
-    auto mainNotebook {Gtk::manage(new Gtk::Notebook())};
-    mainNotebook->set_vexpand(true);
-
-    // Browser app for first Notebook App
+    // Load the GtkBuilder file and instantiate its widgets, check for errors
+    auto refBuilder {Gtk::Builder::create()};
+    try
+    {
+        refBuilder->add_from_file("res/gtk/main_app.ui");
+    }
+    catch(const Glib::FileError& ex)
+    {
+        std::cerr << "FileError: " << ex.what() << std::endl;
+        throw ex;
+    }
+    catch(const Glib::MarkupError& ex)
+    {
+        std::cerr << "MarkupError: " << ex.what() << std::endl;
+        throw ex;
+    }
+    catch(const Gtk::BuilderError& ex)
+    {
+        std::cerr << "BuilderError: " << ex.what() << std::endl;
+        throw ex;
+    }
+    mainWindow = Gtk::manage(refBuilder->get_widget<Gtk::ApplicationWindow>("main_window"));
+    auto mainBrowserBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("main_browser_box"))};
     auto browserBox {Gtk::manage(new Browser())};
-    mainNotebook->append_page(*browserBox);
-    // Browser tab title
-    auto labelBrowser {Gtk::manage(new Gtk::Label())};
-    labelBrowser->set_text("Browser");
-    mainNotebook->set_tab_label(*browserBox, *labelBrowser);
-    
-    // Fractal app for second Notebook App
-    auto fractal_placeholder {Gtk::manage(new Gtk::Label())};
-    fractal_placeholder->set_text("Temp Fractal Placeholder");
-    fractal_placeholder->set_justify(Gtk::Justification::CENTER);
-    fractal_placeholder->set_hexpand(true);
-    mainNotebook->append_page(*fractal_placeholder);
-    // Fractal tab title
-    auto labelFractal {Gtk::manage(new Gtk::Label())};
-    labelFractal->set_text("Fractal");
-    mainNotebook->set_tab_label(*fractal_placeholder, *labelFractal);
-    mainNotebook->set_current_page(0);
-    mainBox->insert_child_at_start(*mainNotebook);
-
-    //General status Label
-    auto labelFoot {Gtk::manage(new Gtk::Label())};
-    labelFoot->set_text("Welcome to MultiApp!");
-    labelFoot->set_justify(Gtk::Justification::CENTER);
-    labelFoot->set_hexpand(true);
-    mainBox->insert_child_after(*labelFoot, *mainNotebook);
+    mainBrowserBox->insert_child_at_start(*browserBox);
 
     add_window(*mainWindow);
     return mainWindow;

@@ -12,9 +12,12 @@ void Browser::entry_uri_load(std::string uri) const
     if(uri == "")
         // Get entry text
         uri = uriEntry->get_text();
+
+    // Is current URI a web page.
     if(uri.find(' ') > uri.size() &&
         std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$")))
     {
+        // Add missing parts of the URL
         if(uri.find("http") > uri.size())
         {
             if(uri.find("www.") > uri.size())
@@ -25,9 +28,12 @@ void Browser::entry_uri_load(std::string uri) const
     }
     else
     {
+        // Add as a google search
         std::replace(uri.begin(), uri.end(), ' ', '+');
         uri = "https://www.google.com/search?q=" + uri;
     }
+
+    // Reload if the requested URI is the same as current
     if(get_uri_root(webkit_web_view_get_uri(webView)) != get_uri_root(uri))
         webkit_web_view_load_uri(webView, uri.c_str());
     else
