@@ -14,9 +14,9 @@ class MainApplication : public Gtk::Application
 {
     friend class MainApplicationTester;
 
-    Gtk::Window *mainWindow;
+    Gtk::ApplicationWindow *mainWindow;
 
-    Gtk::Window* create_window();
+    Gtk::ApplicationWindow* create_window();
 
 protected:
     /**
