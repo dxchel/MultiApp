@@ -1,7 +1,7 @@
 #ifndef _BROWSER_APP_
 #define _BROWSER_APP_
 
-#define HOME_URL "https://www.github.com/dxchel/MultiApp"
+#define HOME_URL "https://dxchel.github.io/portfolio"
 
 #include <gtkmm.h>
 #include <webkit/webkit.h>

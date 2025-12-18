@@ -20,10 +20,10 @@ void Browser::entry_uri_load(std::string uri) const
         // Add missing parts of the URL
         if(uri.find("http") > uri.size())
         {
-            if(uri.find("www.") > uri.size())
+            if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL))
                 uri = "www." + uri;
             uri = "https://" + uri;
-        }else if(uri.find("www.") > uri.size())
+        }else if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL))
             std::regex_replace(uri, std::regex("https?://"), "https://www.");
     }
     else
