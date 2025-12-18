@@ -70,13 +70,13 @@ It removes the build/, build_tests/, multiapp.exe and multiapp_tests.exe folders
 Here are some screenshots of the funtioning app on Linux.
 
 Fresh window when opening app:
-![Fresh window](https://www.github.com/dxchel/MultiApp/blob/main/res/fresh_window.png)
+![Fresh window](https://github.com/dxchel/MultiApp/blob/main/res/fresh_window.png)
 
 Window after entering google.com, notice back button enabled:
-![Entered google.com](https://www.github.com/dxchel/MultiApp/blob/main/res/google.png)
+![Entered google.com](https://github.com/dxchel/MultiApp/blob/main/res/google.png)
 
 Window after adding directions and returning to repo in URL history, notice both back and forward buttons enabled:
-![Added some directions and returned to project Repo](https://www.github.com/dxchel/MultiApp/blob/main/res/multiapp_repo.png)
+![Added some directions and returned to project Repo](https://github.com/dxchel/MultiApp/blob/main/res/multiapp_repo.png)
 
 Fractal window placeholder:
 ![Fractal placeholder](https://github.com/dxchel/MultiApp/blob/main/res/fractal.png)
