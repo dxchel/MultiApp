@@ -40,7 +40,7 @@ void Browser::entry_uri_load(std::string uri) const
         webkit_web_view_reload(webView);
 }
 
-Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}, scroller {}
+Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto refBuilder {Gtk::Builder::create()};

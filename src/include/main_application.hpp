@@ -14,7 +14,7 @@ class MainApplication : public Gtk::Application
 {
     friend class MainApplicationTest;
 
-    Gtk::ApplicationWindow *mainWindow;
+    Gtk::ApplicationWindow *mainWindow {};
 
     /**
      * @brief Creates ApplicationWindow to show.
