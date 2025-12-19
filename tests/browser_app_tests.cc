@@ -4,6 +4,7 @@
 #include <regex>
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 
 BrowserTest::BrowserTest() : browser (Gtk::manage(new Browser())), webView {browser->webView},
@@ -17,23 +18,23 @@ void BrowserTest::entry_uri_load(std::string uri) const { browser->entry_uri_loa
 
 TEST_F(BrowserTest, BrowserStructuralTest)
 {
-    ASSERT_NE(browser, nullptr);
+    ASSERT_THAT(browser, ::testing::NotNull());
     auto header {dynamic_cast<Gtk::Box *>(browser->get_first_child())};
-    ASSERT_NE(header, nullptr);
+    ASSERT_THAT(header, ::testing::NotNull());
     auto back {dynamic_cast<Gtk::Button *>(header->get_first_child())};
-    ASSERT_NE(back, nullptr);
+    ASSERT_THAT(back, ::testing::NotNull());
     auto forward {dynamic_cast<Gtk::Button *>(back->get_next_sibling())};
-    ASSERT_NE(forward, nullptr);
+    ASSERT_THAT(forward, ::testing::NotNull());
     auto home {dynamic_cast<Gtk::Button *>(forward->get_next_sibling())};
-    ASSERT_NE(home, nullptr);
+    ASSERT_THAT(home, ::testing::NotNull());
     auto reload {dynamic_cast<Gtk::Button *>(home->get_next_sibling())};
-    ASSERT_NE(reload, nullptr);
+    ASSERT_THAT(reload, ::testing::NotNull());
     auto entry {dynamic_cast<Gtk::Entry *>(reload->get_next_sibling())};
-    ASSERT_NE(entry, nullptr);
+    ASSERT_THAT(entry, ::testing::NotNull());
     auto enter {dynamic_cast<Gtk::Button *>(entry->get_next_sibling())};
-    ASSERT_NE(enter, nullptr);
+    ASSERT_THAT(enter, ::testing::NotNull());
     auto menu {dynamic_cast<Gtk::MenuButton *>(enter->get_next_sibling())};
-    ASSERT_NE(menu, nullptr);
+    EXPECT_THAT(menu, ::testing::NotNull());
 }
 
 TEST_F(BrowserTest, BrowserFunctionalTest)

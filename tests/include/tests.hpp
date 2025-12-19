@@ -2,6 +2,7 @@
 #define _TESTERS_
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include "../../src/include/main_application.hpp"
 #include "../../src/include/browser_app.hpp"
