@@ -18,7 +18,7 @@
  */
 class Browser : public Gtk::Box
 {
-    friend class BrowserAppTester;
+    friend class BrowserTest;
 
     WebKitWebView *webView;
     Gtk::Box *header;
