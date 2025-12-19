@@ -1,13 +1,9 @@
 #include "include/tests.hpp"
+#include <gtest/gtest.h>
 
 
-int main()
+int main(int argc, char** argv)
 {
-    int exit_code {};
-    MainApplicationTester mainApplicationTester {};
-    BrowserAppTester browserAppTester {};
-    exit_code += static_cast<int>(mainApplicationTester.mainApplicationStructureTests());
-    exit_code += static_cast<int>(browserAppTester.browserAppStructureTests());
-    exit_code += static_cast<int>(browserAppTester.browserAppFunctionalTests());
-    return exit_code;
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

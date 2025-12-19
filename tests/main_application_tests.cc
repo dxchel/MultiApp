@@ -2,45 +2,28 @@
 
 #include <iostream>
 
+#include <gtest/gtest.h>
 
-MainApplicationTester::MainApplicationTester() : mainApp (MainApplication::create()) {};
 
-MainApplicationError MainApplicationTester::mainApplicationStructureTests() const
+MainApplicationTest::MainApplicationTest() : mainApp (MainApplication::create()) {};
+
+
+Gtk::ApplicationWindow* MainApplicationTest::create_window()
 {
-    if(!mainApp)
-    {
-        std::cerr << "Main Application Error." << std::endl;
-        return MainApplicationError::application_error;
-    }
-    auto window {dynamic_cast<Gtk::Window *>(mainApp->create_window())};
-    if(!window)
-    {
-        std::cerr << "Main Window Error." << GTK_IS_WINDOW(window)<< std::endl;
-        return MainApplicationError::window_error;
-    }
+    return mainApp->create_window();
+}
+
+TEST_F(MainApplicationTest, MainApplicationStructureTest)
+{
+    ASSERT_NE(mainApp, nullptr);
+    auto window {dynamic_cast<Gtk::Window *>(create_window())};
+    ASSERT_NE(window, nullptr);
     auto box {dynamic_cast<Gtk::Box *>(window->get_child())};
-    if(!box)
-    {
-        std::cerr << "Main Box Error." << GTK_IS_BOX(box) << std::endl;
-        return MainApplicationError::box_error;
-    }
+    ASSERT_NE(box, nullptr);
     auto notebook {dynamic_cast<Gtk::Notebook *>(box->get_first_child())};
-    if(!notebook)
-    {
-        std::cerr << "Main Notebook Error." << std::endl;
-        return MainApplicationError::notebook_error;
-    }
-    auto browser {dynamic_cast<Gtk::Box *>(notebook->get_first_child())};
-    if(!browser)
-    {
-        std::cerr << "Browser Box Error." << std::endl;
-        return MainApplicationError::browser_error;
-    }
+    ASSERT_NE(notebook, nullptr);
     auto foot {dynamic_cast<Gtk::Label *>(notebook->get_next_sibling())};
-    if(!foot)
-    {
-        std::cerr << "Main Foot Label Error." << std::endl;
-        return MainApplicationError::foot_error;
-    }
-    return MainApplicationError::no_error;
+    EXPECT_NE(foot, nullptr);
+    auto browser {dynamic_cast<Gtk::Box *>(notebook->get_first_child())};
+    ASSERT_NE(browser, nullptr);
 }
