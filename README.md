@@ -59,7 +59,7 @@ It creates a multiapp.exe executable.
 
 For building tests, run:
 ``` make tests ```
-It creates a multiapp_tests.exe executable.
+It creates a multiapp_tests.exe executable that uses the [GTEST](https://github.com/google/googletest) framework.
 
 For cleaning building objects and executables, run:
 ``` make clean ```
