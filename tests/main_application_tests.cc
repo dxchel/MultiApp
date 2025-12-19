@@ -2,45 +2,26 @@
 
 #include <iostream>
 
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-MainApplicationTester::MainApplicationTester() : mainApp (MainApplication::create()) {};
 
-MainApplicationError MainApplicationTester::mainApplicationStructureTests() const
+MainApplicationTest::MainApplicationTest() : mainApp (MainApplication::create()) {};
+
+
+Gtk::ApplicationWindow* MainApplicationTest::create_window() { return mainApp->create_window(); }
+
+TEST_F(MainApplicationTest, MainApplicationStructureTest)
 {
-    if(!mainApp)
-    {
-        std::cerr << "Main Application Error." << std::endl;
-        return MainApplicationError::application_error;
-    }
-    auto window {dynamic_cast<Gtk::Window *>(mainApp->create_window())};
-    if(!window)
-    {
-        std::cerr << "Main Window Error." << GTK_IS_WINDOW(window)<< std::endl;
-        return MainApplicationError::window_error;
-    }
+    ASSERT_THAT(mainApp, ::testing::NotNull());
+    auto window {dynamic_cast<Gtk::Window *>(create_window())};
+    ASSERT_THAT(window, ::testing::NotNull());
     auto box {dynamic_cast<Gtk::Box *>(window->get_child())};
-    if(!box)
-    {
-        std::cerr << "Main Box Error." << GTK_IS_BOX(box) << std::endl;
-        return MainApplicationError::box_error;
-    }
+    ASSERT_THAT(box, ::testing::NotNull());
     auto notebook {dynamic_cast<Gtk::Notebook *>(box->get_first_child())};
-    if(!notebook)
-    {
-        std::cerr << "Main Notebook Error." << std::endl;
-        return MainApplicationError::notebook_error;
-    }
-    auto browser {dynamic_cast<Gtk::Box *>(notebook->get_first_child())};
-    if(!browser)
-    {
-        std::cerr << "Browser Box Error." << std::endl;
-        return MainApplicationError::browser_error;
-    }
+    ASSERT_THAT(notebook, ::testing::NotNull());
     auto foot {dynamic_cast<Gtk::Label *>(notebook->get_next_sibling())};
-    if(!foot)
-    {
-        std::cerr << "Main Foot Label Error." << std::endl;
-        return MainApplicationError::foot_error;
-    }
-    return MainApplicationError::no_error;
+    EXPECT_THAT(foot, ::testing::NotNull());
+    auto browser {dynamic_cast<Gtk::Box *>(notebook->get_first_child())};
+    ASSERT_THAT(browser, ::testing::NotNull());
 }

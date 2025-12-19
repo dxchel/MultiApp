@@ -3,68 +3,41 @@
 #include <iostream>
 #include <regex>
 
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-BrowserAppTester::BrowserAppTester() : browser (Gtk::manage(new Browser())) {};
 
-BrowserAppError BrowserAppTester::browserAppStructureTests() const
+BrowserTest::BrowserTest() : browser (Gtk::manage(new Browser())), webView {browser->webView},
+    header {browser->header}, scroller {browser->scroller}, backButton {browser->backButton},
+    forwardButton {browser->forwardButton}, homeButton {browser->homeButton},
+    reloadButton {browser->reloadButton}, uriEntry {browser->uriEntry},
+    enterButton {browser->enterButton}, menuButton {browser->menuButton} {};
+
+std::string BrowserTest::get_uri_root(const std::string& uri) { return Browser::get_uri_root(uri); }
+void BrowserTest::entry_uri_load(std::string uri) const { browser->entry_uri_load(uri); }
+
+TEST_F(BrowserTest, BrowserStructuralTest)
 {
-    if(!browser)
-    {
-        std::cerr << "Browser Box Error." << std::endl;
-        return BrowserAppError::browser_error;
-    }
+    ASSERT_THAT(browser, ::testing::NotNull());
     auto header {dynamic_cast<Gtk::Box *>(browser->get_first_child())};
-    if(!header)
-    {
-        std::cerr << "Header Bar Error."  << std::endl;
-        return BrowserAppError::header_error;
-    }
+    ASSERT_THAT(header, ::testing::NotNull());
     auto back {dynamic_cast<Gtk::Button *>(header->get_first_child())};
-    if(!back)
-    {
-        std::cerr << "Back Button Error in header." << std::endl;
-        return BrowserAppError::back_error;
-    }
+    ASSERT_THAT(back, ::testing::NotNull());
     auto forward {dynamic_cast<Gtk::Button *>(back->get_next_sibling())};
-    if(!forward)
-    {
-        std::cerr << "Forward Button Error in header." << std::endl;
-        return BrowserAppError::forward_error;
-    }
+    ASSERT_THAT(forward, ::testing::NotNull());
     auto home {dynamic_cast<Gtk::Button *>(forward->get_next_sibling())};
-    if(!home)
-    {
-        std::cerr << "Home Button Error in header." << std::endl;
-        return BrowserAppError::home_error;
-    }
+    ASSERT_THAT(home, ::testing::NotNull());
     auto reload {dynamic_cast<Gtk::Button *>(home->get_next_sibling())};
-    if(!reload)
-    {
-        std::cerr << "Reload Button Error in header." << std::endl;
-        return BrowserAppError::reload_error;
-    }
+    ASSERT_THAT(reload, ::testing::NotNull());
     auto entry {dynamic_cast<Gtk::Entry *>(reload->get_next_sibling())};
-    if(!entry)
-    {
-        std::cerr << "Entry Button Error in header." << std::endl;
-        return BrowserAppError::entry_error;
-    }
+    ASSERT_THAT(entry, ::testing::NotNull());
     auto enter {dynamic_cast<Gtk::Button *>(entry->get_next_sibling())};
-    if(!enter)
-    {
-        std::cerr << "Enter Button Error in header." << std::endl;
-        return BrowserAppError::enter_error;
-    }
+    ASSERT_THAT(enter, ::testing::NotNull());
     auto menu {dynamic_cast<Gtk::MenuButton *>(enter->get_next_sibling())};
-    if(!menu)
-    {
-        std::cerr << "Menu Button Error in header." << std::endl;
-        return BrowserAppError::menu_error;
-    }
-    return BrowserAppError::no_error;
+    EXPECT_THAT(menu, ::testing::NotNull());
 }
 
-BrowserAppError BrowserAppTester::browserAppFunctionalTests() const
+TEST_F(BrowserTest, BrowserFunctionalTest)
 {
     // TODO: Need to check how to simulate button clicks instead of calling functions manually
     // TODO: Need to check how to make webView load pages without showing anything
@@ -98,24 +71,19 @@ BrowserAppError BrowserAppTester::browserAppFunctionalTests() const
     std::stack<std::string> uriStack {};
     for(auto &uri : urisToLoad)
     {
-        browser->uriEntry->set_text(uri);
-        browser->entry_uri_load();
-        if(Browser::get_uri_root(uri) != Browser::get_uri_root(previousUri))
+        uriEntry->set_text(uri);
+        entry_uri_load();
+        if(get_uri_root(uri) != get_uri_root(previousUri))
         {
             uriStack.push(uri);
             previousUri = uri;
         }
-        webkit_web_view_go_back(browser->webView);
         if(uri.find(' ') < uri.size())
         {
             std::replace(uri.begin(), uri.end(), ' ', '+');
             uri = "https://www.google.com/search?q=" + uri;
         }
-        if(Browser::get_uri_root(uri) != Browser::get_uri_root(webkit_web_view_get_uri(browser->webView)))
-        {
-            std::cerr << "WebView not directed to " << uri << ", got " << webkit_web_view_get_uri(browser->webView) << " instead." << std::endl;
-            return BrowserAppError::webview_error;
-        }
+        ASSERT_EQ(get_uri_root(uri), get_uri_root(webkit_web_view_get_uri(webView))) <<
+            "WebView not directed to " << uri << ", got " << webkit_web_view_get_uri(webView) << " instead." << std::endl;
     }
-    return BrowserAppError::no_error;
 }

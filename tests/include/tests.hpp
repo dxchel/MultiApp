@@ -1,25 +1,12 @@
 #ifndef _TESTERS_
 #define _TESTERS_
 
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
 #include "../../src/include/main_application.hpp"
 #include "../../src/include/browser_app.hpp"
 
-
-/**
- * @brief Contains MainApplication error types.
- * 
- * Enum containing the names of the MainApplication class possible errors.
- * */
-enum class MainApplicationError
-{
-    no_error,
-    application_error,
-    window_error,
-    box_error,
-    notebook_error,
-    browser_error,
-    foot_error
-};
 
 /**
  * @brief Contains MainApplication object and tests.
@@ -27,50 +14,22 @@ enum class MainApplicationError
  * Class to create an object with test functions for the MainApplication class,
  * only contains a MainApplication object and Structural tests function.
  * */
-class MainApplicationTester
+class MainApplicationTest : public testing::Test
 {
-    Glib::RefPtr<MainApplication> mainApp;
 
-public:
+protected:
     /**
      * @brief Creates MainApplication object mainApp.
      * 
      * Obtains MainApplication object using default constructor for testing.
      * */
-    MainApplicationTester();
+    MainApplicationTest();
 
-    /**
-     * @brief Runs structural tests on the object's mainApp.
-     * 
-     * Runs structural tests to check if all of mainApp
-     * objects are present and in the correct order.
-     * 
-     * @return MainApplicationError class error code.
-     */
-    MainApplicationError mainApplicationStructureTests() const;
+    Gtk::ApplicationWindow* create_window();
+
+    Glib::RefPtr<MainApplication> mainApp;
 };
 
-
-/**
- * @brief Contains Browser error types.
- * 
- * Enum with the names of the Browser class possible errors.
- * */
-enum class BrowserAppError
-{
-    no_error,
-    browser_error,
-    header_error,
-    back_error,
-    forward_error,
-    home_error,
-    reload_error,
-    entry_error,
-    enter_error,
-    menu_error,
-    scroller_error,
-    webview_error
-};
 
 /**
  * @brief Contains Browser object and Structural/Functional tests.
@@ -78,38 +37,53 @@ enum class BrowserAppError
  * Class to create an object with test functions for the Browser class,
  * only contains a Browser object, Structural and Functional test functions.
  * */
-class BrowserAppTester
+class BrowserTest : public testing::Test
 {
-
-    Browser *browser;
-
-public:
+protected:
     /**
      * @brief Creates Browser object browser.
      * 
      * Obtains Browser object using default constructor for testing.
      * */
-    BrowserAppTester();
+    BrowserTest();
 
-    /**
-     * @brief Runs structural tests on the object's browser.
-     * 
-     * Runs structural tests to check if all of browser
-     * objects are present and in the correct order.
-     * 
-     * @return BrowserAppError class error code.
-     */
-    BrowserAppError browserAppStructureTests() const;
+    static std::string get_uri_root(const std::string&);
+    void entry_uri_load(std::string uri="") const;
 
-    /**
-     * @brief Runs functional tests on the object's browser.
-     * 
-     * Runs functional tests to check if all of browser methods are work as intended by
-     * loading uris into the webView and checking if resulting page is correct.
-     * 
-     * @return BrowserAppError class error code.
-     */
-    BrowserAppError browserAppFunctionalTests() const;
+    Browser *browser;
+    WebKitWebView *webView {};
+    Gtk::Box *header {};
+    Gtk::ScrolledWindow *scroller {};
+    Gtk::Button *backButton {};
+    Gtk::Button *forwardButton {};
+    Gtk::Button *homeButton {};
+    Gtk::Button *reloadButton {};
+    Gtk::Entry *uriEntry {};
+    Gtk::Button *enterButton {};
+    Gtk::MenuButton *menuButton {};
 };
 
+/**
+ * @brief Runs structural tests on the object's mainApp.
+ * 
+ * Runs structural tests to check if all of mainApp
+ * objects are present and in the correct order.
+ */
+// TEST_F(MainApplicationTest, MainApplicationStructureTests);
+
+/**
+ * @brief Runs structural tests on the object's browser.
+ * 
+ * Runs structural tests to check if all of browser
+ * objects are present and in the correct order.
+ */
+// TEST_F(BrowserTest, BrowserStructureTests);
+
+/**
+ * @brief Runs functional tests on the object's browser.
+ * 
+ * Runs functional tests to check if all of browser methods are work as intended by
+ * loading uris into the webView and checking if resulting page is correct.
+ */
+//  TEST_F(BrowserTest, BrowserFunctionalTests);
 #endif

@@ -9,24 +9,24 @@ std::string Browser::get_uri_root(const std::string &uri)
 
 void Browser::entry_uri_load(std::string uri) const
 {
-    if(uri == "")
+    if(uri == "") [[unlikely]]
         // Get entry text
         uri = uriEntry->get_text();
 
     // Is current URI a web page.
     if(uri.find(' ') > uri.size() &&
-        std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$")))
+        std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$"))) [[likely]]
     {
         // Add missing parts of the URL
-        if(uri.find("http") > uri.size())
+        if(uri.find("http") > uri.size()) [[likely]]
         {
-            if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL))
+            if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL)) [[likely]]
                 uri = "www." + uri;
             uri = "https://" + uri;
-        }else if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL))
+        }else if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL)) [[unlikely]]
             std::regex_replace(uri, std::regex("https?://"), "https://www.");
     }
-    else
+    else [[unlikely]]
     {
         // Add as a google search
         std::replace(uri.begin(), uri.end(), ' ', '+');
@@ -34,13 +34,13 @@ void Browser::entry_uri_load(std::string uri) const
     }
 
     // Reload if the requested URI is the same as current
-    if(get_uri_root(webkit_web_view_get_uri(webView)) != get_uri_root(uri))
+    if(get_uri_root(webkit_web_view_get_uri(webView)) != get_uri_root(uri)) [[likely]]
         webkit_web_view_load_uri(webView, uri.c_str());
-    else
+    else [[unlikely]]
         webkit_web_view_reload(webView);
 }
 
-Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}, scroller {}
+Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto refBuilder {Gtk::Builder::create()};
@@ -85,23 +85,23 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
     menuButton = refBuilder->get_widget<Gtk::MenuButton>("header_menu");
 
     // Add Callbacks
-    if(backButton)
+    if(backButton) [[likely]]
         backButton->signal_clicked().connect
         (
             [this](){ webkit_web_view_go_back(webView);}
         );
-    if(forwardButton)
+    if(forwardButton) [[likely]]
         forwardButton->signal_clicked().connect
         (
             [this](){ webkit_web_view_go_forward(webView);}
         );
-    if(homeButton)
+    if(homeButton) [[likely]]
         homeButton->signal_clicked().connect
         (
             [this](){ entry_uri_load(HOME_URL);}
     
         );
-    if(reloadButton)
+    if(reloadButton) [[likely]]
         reloadButton->signal_clicked().connect
         (
             [this]()
@@ -111,13 +111,14 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL), webView {}, header {}
                 webkit_web_view_reload(webView);
             }
         );
-    if(uriEntry){
+    if(uriEntry) [[likely]]
+    {
         uriEntry->signal_activate().connect([this](){ entry_uri_load();});
-        if(enterButton)
+        if(enterButton) [[likely]]
             enterButton->signal_clicked().connect([this](){ entry_uri_load();});
     }
     // Menu button not visible as no usage needed for the moment
-    if(menuButton) menuButton->set_visible(false);
+    if(menuButton) [[likely]] menuButton->set_visible(false);
 
     g_signal_connect(webView, "load-changed", G_CALLBACK(web_view_load_changed), this);
     webkit_web_view_load_uri(webView, HOME_URL);

@@ -5,8 +5,7 @@
 
 
 MainApplication::MainApplication() :
-    Gtk::Application("org.xchel.multiapp", Gio::Application::Flags::HANDLES_OPEN),
-    mainWindow {} {}
+    Gtk::Application("org.xchel.multiapp", Gio::Application::Flags::HANDLES_OPEN) {}
 
 Glib::RefPtr<MainApplication> MainApplication::create()
 {
