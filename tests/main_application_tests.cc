@@ -8,10 +8,7 @@
 MainApplicationTest::MainApplicationTest() : mainApp (MainApplication::create()) {};
 
 
-Gtk::ApplicationWindow* MainApplicationTest::create_window()
-{
-    return mainApp->create_window();
-}
+Gtk::ApplicationWindow* MainApplicationTest::create_window() { return mainApp->create_window(); }
 
 TEST_F(MainApplicationTest, MainApplicationStructureTest)
 {
