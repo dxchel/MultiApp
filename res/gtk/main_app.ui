@@ -27,15 +27,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="main_fractal_box">
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label">Fractal Placeholder</property>
-                    <property name="vexpand">True</property>
-                  </object>
-                </child>
-              </object>
+              <object class="GtkDrawingArea"/>
             </child>
             <child type="tab">
               <object class="GtkLabel">
@@ -45,7 +37,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkLabel">
+          <object class="GtkLabel" id="main_status_label">
             <property name="label">Welcome to MultiApp!</property>
           </object>
         </child>

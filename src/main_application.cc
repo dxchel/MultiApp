@@ -46,6 +46,9 @@ Gtk::ApplicationWindow* MainApplication::create_window()
     auto browserBox {Gtk::manage(new Browser())};
     mainBrowserBox->insert_child_at_start(*browserBox);
 
+    auto statusLabel {Gtk::manage(refBuilder->get_widget<Gtk::Label>("main_status_label"))};
+    browserBox->setStatusLabel(statusLabel);
+
     add_window(*mainWindow);
     return mainWindow;
 }

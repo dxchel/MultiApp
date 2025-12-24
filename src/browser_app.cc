@@ -1,6 +1,10 @@
 #include "include/browser_app.hpp"
 
 
+void Browser::setStatusLabel(Gtk::Label *label){
+    statusLabel = label;
+}
+
 std::string Browser::get_uri_root(const std::string &uri)
 {
     std::string result {std::regex_replace(uri, std::regex("(https?://|www\\.)"), "")};
@@ -159,6 +163,7 @@ void Browser::web_view_load_changed(WebKitWebView *webView,
             browser->uriEntry->set_sensitive(true);
             browser->uriEntry->set_text(uri);
             browser->enterButton->set_sensitive(true);
+            browser->statusLabel->set_text(static_cast<std::string>("Welcome to the browser! You're in page: ") + webkit_web_view_get_title(webView));
             std::cout << "Load finished." << std::endl;
             break;
     }
