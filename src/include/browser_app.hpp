@@ -31,6 +31,8 @@ class Browser : public Gtk::Box
     Gtk::Button *enterButton {};
     Gtk::MenuButton *menuButton {};
 
+    Gtk::Label *statusLabel {};
+
     /**
      * @brief Removes initial http(s)?:// and www. substrings from uri.
      * 
@@ -61,6 +63,13 @@ public:
      * Checks for file issues, gets Widgets and connects needed signals.
      */
     Browser();
+
+    /**
+     * @brief Set browser status label
+     * 
+     * @param[in] label: Gtk::Label to use as status label.
+     */
+    void setStatusLabel(Gtk::Label *label);
 
     /**
      * @brief Function for webView load events.
