@@ -1,5 +1,12 @@
 #include "include/browser_app.hpp"
 
+#include <gtkmm.h>
+#include <webkit/webkit.h>
+
+#include <iostream>
+#include <regex>
+
+
 
 void Browser::setStatusLabel(Gtk::Label *label){
     statusLabel = label;

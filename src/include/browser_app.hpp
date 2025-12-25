@@ -6,9 +6,6 @@
 #include <gtkmm.h>
 #include <webkit/webkit.h>
 
-#include <iostream>
-#include <regex>
-
 
 /**
  * @brief Browser class containing important Widgets and functions for Browser functionality.
