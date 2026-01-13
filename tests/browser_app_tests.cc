@@ -1,7 +1,6 @@
 #include "include/tests.hpp"
 
 #include <iostream>
-#include <regex>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

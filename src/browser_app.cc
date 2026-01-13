@@ -110,7 +110,6 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
         homeButton->signal_clicked().connect
         (
             [this](){ entry_uri_load(HOME_URL);}
-    
         );
     if(reloadButton) [[likely]]
         reloadButton->signal_clicked().connect
