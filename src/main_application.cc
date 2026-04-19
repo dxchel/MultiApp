@@ -1,5 +1,6 @@
 #include "include/main_application.hpp"
 #include "include/browser_app.hpp"
+#include "include/fractal_app.hpp"
 
 #include <iostream>
 #include <gtkmm.h>
@@ -45,6 +46,9 @@ Gtk::ApplicationWindow* MainApplication::create_window()
     auto mainBrowserBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("main_browser_box"))};
     auto browserBox {Gtk::manage(new Browser())};
     mainBrowserBox->insert_child_at_start(*browserBox);
+    auto mainFractalBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("main_fractal_box"))};
+    auto fractalBox {Gtk::manage(new FractalBox())};
+    mainFractalBox->insert_child_at_start(*fractalBox);
 
     auto statusLabel {Gtk::manage(refBuilder->get_widget<Gtk::Label>("main_status_label"))};
     browserBox->setStatusLabel(statusLabel);
