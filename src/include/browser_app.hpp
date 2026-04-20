@@ -58,14 +58,7 @@ public:
      * Creates Browser object using res/gtk/browser_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
-    Browser();
-
-    /**
-     * @brief Set browser status label
-     *
-     * @param[in] label: Gtk::Label to use as status label.
-     */
-    void setStatusLabel(Gtk::Label *label);
+    Browser(Gtk::Label*);
 
     /**
      * @brief Function for webView load events.

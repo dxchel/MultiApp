@@ -7,11 +7,6 @@
 #include <regex>
 
 
-
-void Browser::setStatusLabel(Gtk::Label *label){
-    statusLabel = label;
-}
-
 std::string Browser::get_uri_root(const std::string &uri)
 {
     std::string result {std::regex_replace(uri, std::regex("(https?://|www\\.)"), "")};
@@ -51,7 +46,7 @@ void Browser::entry_uri_load(std::string uri) const
         webkit_web_view_reload(webView);
 }
 
-Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
+Browser::Browser(Gtk::Label *parentLabel = nullptr) : Gtk::Box(Gtk::Orientation::VERTICAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto refBuilder {Gtk::Builder::create()};
@@ -136,6 +131,7 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
     // Insert elements into Browser Box
     insert_child_at_start(*header);
     insert_child_after(*scroller, *header);
+    statusLabel = parentLabel;
 }
 
 void Browser::web_view_load_changed(WebKitWebView *webView,
@@ -169,7 +165,8 @@ void Browser::web_view_load_changed(WebKitWebView *webView,
             browser->uriEntry->set_sensitive(true);
             browser->uriEntry->set_text(uri);
             browser->enterButton->set_sensitive(true);
-            browser->statusLabel->set_text(static_cast<std::string>("Welcome to the browser! You're in page: ") + webkit_web_view_get_title(webView));
+            if ( browser->statusLabel )
+                browser->statusLabel->set_text(static_cast<std::string>("Welcome to the browser! You're in page: ") + webkit_web_view_get_title(webView));
             std::cout << "Load finished." << std::endl;
             break;
     }
