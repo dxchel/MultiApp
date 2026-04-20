@@ -71,7 +71,7 @@ public:
      * Creates FractalBox object using res/gtk/fractal_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
-    FractalBox(Gtk::Label*);
+    FractalBox(Gtk::Label* parentLabel = nullptr);
 
     /**
      * @brief Set fractal status label

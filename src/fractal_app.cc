@@ -143,7 +143,7 @@ void FractalArea::reset() {
 }
 
 
-FractalBox::FractalBox(Gtk::Label *parentLabel = nullptr) : Gtk::Box(Gtk::Orientation::VERTICAL)
+FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VERTICAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto refBuilder {Gtk::Builder::create()};

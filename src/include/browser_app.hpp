@@ -58,7 +58,7 @@ public:
      * Creates Browser object using res/gtk/browser_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
-    Browser(Gtk::Label*);
+    Browser(Gtk::Label* parentLabel = nullptr);
 
     /**
      * @brief Function for webView load events.
