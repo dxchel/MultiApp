@@ -1,5 +1,5 @@
 PROGRAM=multiapp
-OBJECTS=build/browser_app.o build/main_application.o
+OBJECTS=build/fractal_app.o build/browser_app.o build/main_application.o
 MAIN=build/main.o
 TESTS=test_build/main_application_tests.o test_build/browser_app_tests.o test_build/main.o
 
