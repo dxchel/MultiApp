@@ -24,10 +24,10 @@ class FractalArea : public Gtk::DrawingArea
 {
     friend class FractalTest;
 
-    double cx_, cy_, range_,
-        drag_start_x_, drag_start_y_,
-        drag_start_cx_, drag_start_cy_;
-    int max_iter_;
+    double cx, cy, range,
+        drag_start_x, drag_start_y,
+        drag_start_cx, drag_start_cy;
+    int max_iter;
 
 public:
     /**

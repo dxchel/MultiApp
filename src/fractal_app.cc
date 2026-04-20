@@ -30,10 +30,10 @@ void iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b) {
 
 
 FractalArea::FractalArea() : Gtk::DrawingArea(),
-    cx_{-0.5}, cy_{0}, range_{3.5},
-    drag_start_x_{}, drag_start_y_{},
-    drag_start_cx_{}, drag_start_cy_{},
-    max_iter_{64}
+    cx{-0.5}, cy{0}, range{3.5},
+    drag_start_x{}, drag_start_y{},
+    drag_start_cx{}, drag_start_cy{},
+    max_iter{64}
 {
     set_expand(true);
     set_draw_func(sigc::mem_fun(*this, &FractalArea::on_draw));
@@ -41,15 +41,15 @@ FractalArea::FractalArea() : Gtk::DrawingArea(),
     // Mouse/touch controls
     auto drag = Gtk::GestureDrag::create();
     drag->signal_drag_begin().connect([this](double x, double y){
-        drag_start_cx_ = cx_; drag_start_cy_ = cy_;
-        drag_start_x_ = x;   drag_start_y_ = y;
-        std::cout << "Dragged from " << drag_start_x_ << "," << drag_start_y_ << std::endl;
+        drag_start_cx = cx; drag_start_cy = cy;
+        drag_start_x = x;   drag_start_y = y;
+        std::cout << "Dragged from " << drag_start_x << "," << drag_start_y << std::endl;
     });
     drag->signal_drag_update().connect([this](double dx, double dy){
-        double px_per_unit = get_width() / range_;
-        cx_ = drag_start_cx_ - dx / px_per_unit;
-        cy_ = drag_start_cy_ + dy / px_per_unit;
-        std::cout << "Dragged by " << cx_ << "," << cy_ << std::endl;
+        double px_per_unit = get_width() / range;
+        cx = drag_start_cx - dx / px_per_unit;
+        cy = drag_start_cy + dy / px_per_unit;
+        std::cout << "Dragged by " << cx << "," << cy << std::endl;
         queue_draw();
     });
     add_controller(drag);
@@ -57,7 +57,7 @@ FractalArea::FractalArea() : Gtk::DrawingArea(),
     auto scroll = Gtk::EventControllerScroll::create();
     scroll->set_flags(Gtk::EventControllerScroll::Flags::VERTICAL);
     scroll->signal_scroll().connect([this](double, double dy) -> bool {
-        range_ *= (dy < 0) ? 0.8 : 1.25;
+        range *= (dy < 0) ? 0.8 : 1.25;
         queue_draw();
         return true;
     }, false);
@@ -74,11 +74,11 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
     auto render_band = [&](int y0, int y1) {
         for (int y = y0; y < y1; ++y) {
             for (int x = 0; x < w; ++x) {
-                double cr = cx_ + (x - w/2.0) * range_ / w;
-                double ci = cy_ - (y - h/2.0) * range_ / w;
-                int iter = mandelbrot(cr, ci, max_iter_);
+                double cr = cx + (x - w/2.0) * range / w;
+                double ci = cy - (y - h/2.0) * range / w;
+                int iter = mandelbrot(cr, ci, max_iter);
                 uint8_t r, g, b;
-                iter_to_rgb(iter, max_iter_, r, g, b);
+                iter_to_rgb(iter, max_iter, r, g, b);
                 int idx = (y * w + x) * 3;
                 pixels[idx]   = r;
                 pixels[idx+1] = g;
@@ -123,22 +123,22 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
                                         Cairo::ToyFontFace::Weight::NORMAL);
     cr->set_font_size(12);
     char buf[128];
-    snprintf(buf, sizeof(buf), "Center: (%.6f, %.6f)", cx_, cy_);
+    snprintf(buf, sizeof(buf), "Center: (%.6f, %.6f)", cx, cy);
     cr->move_to(14, 26); cr->show_text(buf);
-    snprintf(buf, sizeof(buf), "Range: %.2e   Iter: %d", range_, max_iter_);
+    snprintf(buf, sizeof(buf), "Range: %.2e   Iter: %d", range, max_iter);
     cr->move_to(14, 46); cr->show_text(buf);
 }
 
 void FractalArea::set_max_iter(int v)
 {
-    max_iter_ = v;
+    max_iter = v;
     queue_draw();
 }
 
-int FractalArea::get_max_iter() const { return max_iter_; }
+int FractalArea::get_max_iter() const { return max_iter; }
 
 void FractalArea::reset() {
-    cx_ = -0.5; cy_ = 0.0; range_ = 3.5;
+    cx = -0.5; cy = 0.0; range = 3.5;
     queue_draw();
 }
 
