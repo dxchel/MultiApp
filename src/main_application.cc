@@ -42,16 +42,15 @@ Gtk::ApplicationWindow* MainApplication::create_window()
         std::cerr << "BuilderError: " << ex.what() << std::endl;
         throw ex;
     }
+    auto statusLabel {Gtk::manage(refBuilder->get_widget<Gtk::Label>("main_status_label"))};
+
     mainWindow = Gtk::manage(refBuilder->get_widget<Gtk::ApplicationWindow>("main_window"));
     auto mainBrowserBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("main_browser_box"))};
-    auto browserBox {Gtk::manage(new Browser())};
+    auto browserBox {Gtk::manage(new Browser(statusLabel))};
     mainBrowserBox->insert_child_at_start(*browserBox);
     auto mainFractalBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("main_fractal_box"))};
-    auto fractalBox {Gtk::manage(new FractalBox())};
+    auto fractalBox {Gtk::manage(new FractalBox(statusLabel))};
     mainFractalBox->insert_child_at_start(*fractalBox);
-
-    auto statusLabel {Gtk::manage(refBuilder->get_widget<Gtk::Label>("main_status_label"))};
-    browserBox->setStatusLabel(statusLabel);
 
     add_window(*mainWindow);
     return mainWindow;
