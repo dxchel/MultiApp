@@ -17,7 +17,7 @@
             <property name="page">0</property>
             <property name="vexpand">True</property>
             <child>
-              <object class="GtkBox" id="main_browser_box">
+              <object class="GtkBox" id="Browser">
                 <property name="orientation">vertical</property>
               </object>
             </child>
@@ -27,7 +27,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="main_fractal_box"/>
+              <object class="GtkBox" id="Fractal"/>
             </child>
             <child type="tab">
               <object class="GtkLabel">
@@ -35,7 +35,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="main_chat_box"/>
+              <object class="GtkBox" id="Chat"/>
             </child>
             <child type="tab">
               <object class="GtkLabel">

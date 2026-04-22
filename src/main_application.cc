@@ -42,15 +42,22 @@ Gtk::ApplicationWindow* MainApplication::create_window()
         std::cerr << "BuilderError: " << ex.what() << std::endl;
         throw ex;
     }
-    auto statusLabel {Gtk::manage(refBuilder->get_widget<Gtk::Label>("main_status_label"))};
+    statusLabel = Gtk::manage(refBuilder->get_widget<Gtk::Label>("main_status_label"));
 
     mainWindow = Gtk::manage(refBuilder->get_widget<Gtk::ApplicationWindow>("main_window"));
-    auto mainBrowserBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("main_browser_box"))};
+    auto mainBrowserBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("Browser"))};
     auto browserBox {Gtk::manage(new Browser(statusLabel))};
     mainBrowserBox->insert_child_at_start(*browserBox);
-    auto mainFractalBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("main_fractal_box"))};
+    auto mainFractalBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("Fractal"))};
     auto fractalBox {Gtk::manage(new FractalBox(statusLabel))};
     mainFractalBox->insert_child_at_start(*fractalBox);
+
+    auto mainNotebook {Gtk::manage(refBuilder->get_widget<Gtk::Notebook>("main_notebook"))};
+    mainNotebook->signal_switch_page().connect([this](Gtk::Widget* page, guint page_number)
+    {
+        (void)page_number;
+        statusLabel->set_text("Welcome to the " + page->get_buildable_id() + " page!");
+    });
 
     add_window(*mainWindow);
     return mainWindow;
