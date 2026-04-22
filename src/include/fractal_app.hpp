@@ -24,9 +24,7 @@ class FractalArea : public Gtk::DrawingArea
 {
     friend class FractalTest;
 
-    double cx, cy, range,
-        drag_start_x, drag_start_y,
-        drag_start_cx, drag_start_cy;
+    double cx, cy, range, drag_start_cx, drag_start_cy;
     int max_iter;
 
 public:
@@ -54,7 +52,6 @@ class FractalBox : public Gtk::Box
 {
     friend class FractalTest;
 
-    GtkStringList *fractals { gtk_string_list_new((const char *[]){"Mandelbrot", NULL}) };
     Gtk::Box *header {};
     Gtk::Button *resetButton {};
     Gtk::Button *saveButton {};
@@ -72,13 +69,6 @@ public:
      * Checks for file issues, gets Widgets and connects needed signals.
      */
     FractalBox(Gtk::Label* parentLabel = nullptr);
-
-    /**
-     * @brief Set fractal status label
-     *
-     * @param[in] label: Gtk::Label to use as status label.
-     */
-    void setStatusLabel(Gtk::Label *label);
 };
 
 #endif

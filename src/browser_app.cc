@@ -171,3 +171,4 @@ void Browser::web_view_load_changed(WebKitWebView *webView,
             break;
     }
 }
+
