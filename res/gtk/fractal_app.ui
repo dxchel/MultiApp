@@ -21,7 +21,14 @@
     </child>
     <child>
       <object class="GtkDropDown" id="fractal_dropdown">
-        <property name="selected">0</property>
+        <property name="model">
+          <object class="GtkStringList">
+            <items>
+              <item translatable="yes">Mandelbrot</item>
+              <item translatable="yes">Tree?</item>
+            </items>
+          </object>
+        </property>
       </object>
     </child>
     <child>
