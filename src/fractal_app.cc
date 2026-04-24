@@ -13,7 +13,7 @@ int mandelbrot(double cr, double ci, int max_iter) {
         double zr2 = zr * zr - zi * zi + cr;
         double zi2 = 2.0 * zr * zi + ci;
         zr = zr2; zi = zi2;
-        if (zr * zr + zi * zi > 7.0) return i;
+        if (zr * zr + zi * zi > 4.0) return i;
     }
     return max_iter;
 }
@@ -61,9 +61,12 @@ FractalArea::FractalArea() : Gtk::DrawingArea(),
 
 void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
 {
-    std::vector<uint8_t> pixels(w * h * 3);
     const int nthreads = static_cast<int>(std::thread::hardware_concurrency());
     std::vector<std::thread> threads;
+
+    // Get Cairo Surface
+    auto surface = Cairo::ImageSurface::create(Cairo::Surface::Format::RGB24, w, h);
+    uint8_t* dst = surface->get_data();
 
     auto render_band = [&](int y0, int y1) {
         for (int y = y0; y < y1; ++y) {
@@ -71,8 +74,8 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
                 double cr = cx + (x - w/2.0) * range / w;
                 double ci = cy - (y - h/2.0) * range / w;
                 int iter = mandelbrot(cr, ci, max_iter),
-                    idx = (y * w + x) * 3;
-                iter_to_rgb(iter, max_iter, pixels[idx], pixels[idx+1], pixels[idx+2]);
+                           idx = (y * w + x) * 4;
+                iter_to_rgb(iter, max_iter, dst[idx+2], dst[idx+1], dst[idx]);
             }
         }
     };
@@ -83,22 +86,10 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
         int y1 = (t == nthreads-1) ? h : y0 + band;
         threads.emplace_back(render_band, y0, y1);
     }
+
     for (auto &th : threads) th.join();
 
-    // Blit to Cairo surface
-    auto surface = Cairo::ImageSurface::create(Cairo::Surface::Format::RGB24, w, h);
-    uint8_t* dst = surface->get_data();
-    int stride = surface->get_stride();
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            int si = (y * w + x) * 3;
-            int di = y * stride + x * 4;
-            dst[di+2] = pixels[si];   // R → B (Cairo ARGB32 is BGRA in memory)
-            dst[di+1] = pixels[si+1]; // G
-            dst[di+0] = pixels[si+2]; // B → R
-        }
-    }
-    surface->mark_dirty();
+    // surface->mark_dirty();
     cr->set_source(surface, 0, 0);
     cr->paint();
 
