@@ -13,7 +13,18 @@ int mandelbrot(double cr, double ci, int max_iter) {
         double zr2 = zr * zr - zi * zi + cr;
         double zi2 = 2.0 * zr * zi + ci;
         zr = zr2; zi = zi2;
-        if (zr * zr + zi * zi > 4.0) return i;
+        if (zr * zr + zi * zi > 7.0) return i;
+    }
+    return max_iter;
+}
+
+int julia(double cr, double ci, int max_iter) {
+    double zr = cr, zi = ci;
+    for (int i = 0; i < max_iter; ++i) {
+        double zr2 = zr * zr - zi * zi - 0.5125;
+        double zi2 = 2.0 * zr * zi + 0.5213;
+        zr = zr2; zi = zi2;
+        if (zr * zr + zi * zi > 7.0) return i;
     }
     return max_iter;
 }
@@ -27,10 +38,14 @@ void iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b) {
 }
 
 
-FractalArea::FractalArea() : Gtk::DrawingArea(),
+FractalArea::FractalArea(std::string selection) : Gtk::DrawingArea(),
     cx{-0.5}, cy{0}, range{3.5},
     drag_start_cx{}, drag_start_cy{},
-    max_iter{64}
+    max_iter{64}, selection{selection},
+    fractal_map{
+        { "Mandelbrot", mandelbrot },
+        { "Julia", julia }
+    }
 {
     set_expand(true);
     set_draw_func(sigc::mem_fun(*this, &FractalArea::on_draw));
@@ -73,7 +88,7 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
             for (int x = 0; x < w; ++x) {
                 double cr = cx + (x - w/2.0) * range / w;
                 double ci = cy - (y - h/2.0) * range / w;
-                int iter = mandelbrot(cr, ci, max_iter),
+                int iter = fractal_map.at(selection)(cr, ci, max_iter),
                            idx = (y * w + x) * 4;
                 iter_to_rgb(iter, max_iter, dst[idx+2], dst[idx+1], dst[idx]);
             }
@@ -110,10 +125,10 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
 }
 
 void FractalArea::set_max_iter(int v)
-{
-    max_iter = v;
-    queue_draw();
-}
+    { max_iter = v; queue_draw(); }
+
+void FractalArea::set_selection(const std::string new_selection)
+    { selection = new_selection; queue_draw(); }
 
 int FractalArea::get_max_iter() const { return max_iter; }
 
@@ -155,7 +170,7 @@ FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VER
     saveButton = refBuilder->get_widget<Gtk::Button>("save_button");
     fractalDropDown = refBuilder->get_widget<Gtk::DropDown>("fractal_dropdown");
     iterScale = refBuilder->get_widget<Gtk::Scale>("iter_scale");
-    fractalArea = Gtk::manage(new FractalArea());
+    fractalArea = Gtk::manage(new FractalArea(selection));
 
     // Add Callbacks
     if(resetButton) [[likely]]
@@ -172,10 +187,9 @@ FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VER
         fractalDropDown->property_selected().signal_changed().connect
         (
             [this](){
-                statusLabel->set_text("Welcome to the Fractal creator! You're using: " + 
-                    std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->
-                    get_string()
-                );
+                selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
+                fractalArea->set_selection(selection);
+                statusLabel->set_text("Welcome to the Fractal creator! You're using: " + selection);
             }
         );
     if(iterScale) [[likely]]
