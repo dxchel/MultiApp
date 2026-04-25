@@ -31,10 +31,16 @@ int julia(double cr, double ci, int max_iter) {
 
 void iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b) {
     if (iter == max_iter) { r = g = b = 0; return; }
-    double t = static_cast<double>(iter) / max_iter;
-    r = static_cast<uint8_t>(std::min(255.0, 17*(1-t)*t*t*t         * 255));
-    g = static_cast<uint8_t>(std::min(255.0,  7*(1-t)*(1-t)*t*t     * 255));
-    b = static_cast<uint8_t>(std::min(255.0, 13*(1-t)*(1-t)*(1-t)*t * 255));
+    double t {static_cast<double>(iter) / max_iter},
+        rll {0.4}, rul {1},
+        gll {0.1}, gul {0.8},
+        bll {}, bul {0.5},
+        rm {(rul-rll)/2},
+        gm {(gul-gll)/2},
+        bm {(bul-bll)/2};
+    r = static_cast<uint8_t>(t > rll && t < rul ? 255-(t-rll-rm)*(t-rll-rm)/rm/rm*255 : 0 );
+    g = static_cast<uint8_t>(t > gll && t < gul ? 255-(t-gll-gm)*(t-gll-gm)/gm/gm*255 : 0 );
+    b = static_cast<uint8_t>(t > bll && t < bul ? 255-(t-bll-bm)*(t-bll-bm)/bm/bm*255 : 0 );
 }
 
 
