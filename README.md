@@ -36,7 +36,7 @@ MultiApp/            // Core application files
 ## 🗺️ Roadmap
 
 - 🚧 Simple internet browser
-- ❌ Fractal creator
+- 🚧 Fractal creator
 - ❌ Local chat app
 - 🔬 Other goodies in the future
 
@@ -70,8 +70,8 @@ It removes the build/, build_tests/, multiapp.exe and multiapp_tests.exe folders
 
 Here are some screenshots of the funtioning app on Linux.
 
-Fresh window when opening app:
-![Fresh window](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/fresh_window.png)
+Fresh window when opening browser app:
+![Browser App](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/fresh_window.png)
 
 Window after entering google.com, notice back button enabled:
 ![Entered google.com](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/google.png)
@@ -79,5 +79,5 @@ Window after entering google.com, notice back button enabled:
 Window after adding directions and returning to repo in URL history, notice both back and forward buttons enabled:
 ![Added some directions and returned to project Repo](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/multiapp_repo.png)
 
-Fractal window placeholder:
-![Fractal placeholder](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/fractal.png)
+Fractal app window:
+![Fractal App](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/fractal.png)

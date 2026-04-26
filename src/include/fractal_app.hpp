@@ -27,16 +27,20 @@ class FractalArea : public Gtk::DrawingArea
     double cx, cy, range, drag_start_cx, drag_start_cy;
     int max_iter;
 
+    std::string selection {};
+    std::unordered_map<std::string, std::function<int(double, double, int)>> fractal_map {};
+
 public:
     /**
      * @brief Creates FractalArea object with all needed functions.
      *
      * Creates FractalArea object with needed fractal drawing functions
      */
-    FractalArea();
+    FractalArea(std::string);
 
     void on_draw(const Cairo::RefPtr<Cairo::Context>&, int, int);
     void set_max_iter(int);
+    void set_selection(const std::string);
     int  get_max_iter() const;
 
     void reset();
@@ -58,8 +62,9 @@ class FractalBox : public Gtk::Box
     Gtk::DropDown *fractalDropDown {};
     Gtk::Scale *iterScale {};
     FractalArea *fractalArea {};
-
     Gtk::Label *statusLabel {};
+
+    std::string selection {"Mandelbrot"};
 
 public:
     /**

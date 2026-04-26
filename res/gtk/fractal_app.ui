@@ -25,7 +25,7 @@
           <object class="GtkStringList">
             <items>
               <item translatable="yes">Mandelbrot</item>
-              <item translatable="yes">Tree?</item>
+              <item translatable="yes">Julia</item>
             </items>
           </object>
         </property>
