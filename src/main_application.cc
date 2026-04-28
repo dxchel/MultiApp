@@ -42,21 +42,36 @@ Gtk::ApplicationWindow* MainApplication::create_window()
         std::cerr << "BuilderError: " << ex.what() << std::endl;
         throw ex;
     }
+
     statusLabel = Gtk::manage(refBuilder->get_widget<Gtk::Label>("main_status_label"));
 
     mainWindow = Gtk::manage(refBuilder->get_widget<Gtk::ApplicationWindow>("main_window"));
-    auto mainBrowserBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("Browser"))};
-    auto browserBox {Gtk::manage(new Browser(statusLabel))};
-    mainBrowserBox->insert_child_at_start(*browserBox);
     auto mainFractalBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("Fractal"))};
-    auto fractalBox {Gtk::manage(new FractalBox(statusLabel))};
-    mainFractalBox->insert_child_at_start(*fractalBox);
+
+    selectedApp = Gtk::manage(new FractalBox(statusLabel));
+    mainFractalBox->append(*selectedApp);
 
     auto mainNotebook {Gtk::manage(refBuilder->get_widget<Gtk::Notebook>("main_notebook"))};
     mainNotebook->signal_switch_page().connect([this](Gtk::Widget* page, guint page_number)
     {
-        (void)page_number;
-        statusLabel->set_text("Welcome to the " + page->get_buildable_id() + " page!");
+        auto app {dynamic_cast<Gtk::Box *>(page)};
+        if (selectedApp)
+        {
+            selectedApp->unparent();
+            selectedApp = nullptr;
+        }
+
+        switch(page_number)
+        {
+        case 0:
+            selectedApp = Gtk::manage(new FractalBox(statusLabel));
+            app->append(*selectedApp);
+            break;
+        case 1:
+            selectedApp = Gtk::manage(new Browser(statusLabel));
+            app->append(*selectedApp);
+            break;
+        }
     });
 
     add_window(*mainWindow);

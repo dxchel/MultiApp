@@ -74,12 +74,11 @@ Browser::Browser(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VERTICAL)
     header = Gtk::manage(refBuilder->get_widget<Gtk::Box>("header_bar"));
 
     // Get the GtkBuilder-instantiated browser_scroller, and connect WebKitWebView with home site loaded
-    scroller = Gtk::manage(new Gtk::ScrolledWindow());
     webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
-    Gtk::Widget *webViewWidget {Gtk::manage(Glib::wrap(GTK_WIDGET(webView)))};
+    auto webViewWidget {Glib::wrap(GTK_WIDGET(webView))};
+    g_object_ref_sink(webViewWidget->gobj());
     webViewWidget->set_name("browser_webview");
     webViewWidget->set_vexpand(true);
-    scroller->set_child(*webViewWidget);
 
     // Get the GtkBuilder-instantiated buttons, and connect a signal handler
     backButton = refBuilder->get_widget<Gtk::Button>("back_button");
@@ -130,7 +129,7 @@ Browser::Browser(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VERTICAL)
 
     // Insert elements into Browser Box
     insert_child_at_start(*header);
-    insert_child_after(*scroller, *header);
+    append(*webViewWidget);
     statusLabel = parentLabel;
 }
 

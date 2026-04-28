@@ -17,6 +17,7 @@ class MainApplication : public Gtk::Application
     Gtk::ApplicationWindow *mainWindow {};
 
     Gtk::Label *statusLabel {};
+    Gtk::Box *selectedApp {};
 
     /**
      * @brief Creates ApplicationWindow to show.

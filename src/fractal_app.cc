@@ -72,7 +72,8 @@ FractalArea::FractalArea(std::string selection) : Gtk::DrawingArea(),
 
     auto scroll = Gtk::EventControllerScroll::create();
     scroll->set_flags(Gtk::EventControllerScroll::Flags::VERTICAL);
-    scroll->signal_scroll().connect([this](double, double dy) -> bool {
+    scroll->signal_scroll().connect([this](double, double dy) -> bool
+    {
         range *= (dy < 0) ? 0.8 : 1.25;
         queue_draw();
         return true;
@@ -89,9 +90,12 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
     auto surface = Cairo::ImageSurface::create(Cairo::Surface::Format::RGB24, w, h);
     uint8_t* dst = surface->get_data();
 
-    auto render_band = [&](int y0, int y1) {
-        for (int y = y0; y < y1; ++y) {
-            for (int x = 0; x < w; ++x) {
+    auto render_band = [&](int y0, int y1)
+    {
+        for (int y = y0; y < y1; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
                 double cr = cx + (x - w/2.0) * range / w;
                 double ci = cy - (y - h/2.0) * range / w;
                 int iter = fractal_map.at(selection)(cr, ci, max_iter),
@@ -102,7 +106,8 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
     };
 
     int band = h / nthreads;
-    for (int t = 0; t < nthreads; ++t) {
+    for (int t = 0; t < nthreads; ++t)
+    {
         int y0 = t * band;
         int y1 = (t == nthreads-1) ? h : y0 + band;
         threads.emplace_back(render_band, y0, y1);
@@ -138,7 +143,8 @@ void FractalArea::set_selection(const std::string new_selection)
 
 int FractalArea::get_max_iter() const { return max_iter; }
 
-void FractalArea::reset() {
+void FractalArea::reset()
+{
     cx = -0.5; cy = 0.0; range = 3.5;
     queue_draw();
 }
@@ -195,7 +201,7 @@ FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VER
             [this](){
                 selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
                 fractalArea->set_selection(selection);
-                statusLabel->set_text("Welcome to the Fractal creator! You're using: " + selection);
+                statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
             }
         );
     if(iterScale) [[likely]]
@@ -213,5 +219,7 @@ FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VER
     insert_child_at_start(*header);
     insert_child_after(*fractalArea, *header);
     statusLabel = parentLabel;
+    selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
+    statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
 }
 

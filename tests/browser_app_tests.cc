@@ -7,7 +7,7 @@
 
 
 BrowserTest::BrowserTest() : browser (Gtk::manage(new Browser())), webView {browser->webView},
-    header {browser->header}, scroller {browser->scroller}, backButton {browser->backButton},
+    header {browser->header}, backButton {browser->backButton},
     forwardButton {browser->forwardButton}, homeButton {browser->homeButton},
     reloadButton {browser->reloadButton}, uriEntry {browser->uriEntry},
     enterButton {browser->enterButton}, menuButton {browser->menuButton} {};
