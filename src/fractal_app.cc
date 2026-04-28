@@ -201,7 +201,7 @@ FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VER
             [this](){
                 selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
                 fractalArea->set_selection(selection);
-                statusLabel->set_text("Welcome to the Fractal creator! You're using: " + selection);
+                statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
             }
         );
     if(iterScale) [[likely]]
@@ -219,5 +219,7 @@ FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VER
     insert_child_at_start(*header);
     insert_child_after(*fractalArea, *header);
     statusLabel = parentLabel;
+    selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
+    statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
 }
 
