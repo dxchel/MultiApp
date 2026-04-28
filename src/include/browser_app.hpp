@@ -19,7 +19,6 @@ class Browser : public Gtk::Box
 
     WebKitWebView *webView {};
     Gtk::Box *header {};
-    Gtk::ScrolledWindow *scroller {};
     Gtk::Button *backButton {};
     Gtk::Button *forwardButton {};
     Gtk::Button *homeButton {};
