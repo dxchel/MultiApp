@@ -50,6 +50,14 @@ class Browser : public Gtk::Box
      */
     void entry_uri_load(std::string uri="") const;
 
+    /**
+     * @brief Get Main Application status label.
+     *
+     * Gets Main Application status label after realize due to
+     * the box needing to be contained.
+     */
+    void on_realize() override;
+
 public:
     /**
      * @brief Creates Browser object with all needed Widgets and signals.
@@ -57,7 +65,7 @@ public:
      * Creates Browser object using res/gtk/browser_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
-    Browser(Gtk::Label* parentLabel = nullptr);
+    Browser();
 
     /**
      * @brief Function for webView load events.

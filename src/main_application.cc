@@ -48,7 +48,7 @@ Gtk::ApplicationWindow* MainApplication::create_window()
     mainWindow = Gtk::manage(refBuilder->get_widget<Gtk::ApplicationWindow>("main_window"));
     auto mainFractalBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("Fractal"))};
 
-    selectedApp = Gtk::manage(new FractalBox(statusLabel));
+    selectedApp = Gtk::manage(new FractalBox());
     mainFractalBox->append(*selectedApp);
 
     auto mainNotebook {Gtk::manage(refBuilder->get_widget<Gtk::Notebook>("main_notebook"))};
@@ -64,11 +64,11 @@ Gtk::ApplicationWindow* MainApplication::create_window()
         switch(page_number)
         {
         case 0:
-            selectedApp = Gtk::manage(new FractalBox(statusLabel));
+            selectedApp = Gtk::manage(new FractalBox());
             app->append(*selectedApp);
             break;
         case 1:
-            selectedApp = Gtk::manage(new Browser(statusLabel));
+            selectedApp = Gtk::manage(new Browser());
             app->append(*selectedApp);
             break;
         }

@@ -46,7 +46,7 @@ void Browser::entry_uri_load(std::string uri) const
         webkit_web_view_reload(webView);
 }
 
-Browser::Browser(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VERTICAL)
+Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto refBuilder {Gtk::Builder::create()};
@@ -130,8 +130,16 @@ Browser::Browser(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VERTICAL)
     // Insert elements into Browser Box
     insert_child_at_start(*header);
     append(*webViewWidget);
-    statusLabel = parentLabel;
 }
+
+void Browser::on_realize() {
+    Gtk::Box::on_realize();
+    statusLabel = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
+    if (!statusLabel) std::cout << "Status label not found" << std::endl;
+    if (statusLabel)
+        statusLabel->set_text("Welcome to the Browser!");
+}
+
 
 void Browser::web_view_load_changed(WebKitWebView *webView,
                                     const WebKitLoadEvent loadEvent,
