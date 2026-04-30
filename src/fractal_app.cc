@@ -1,3 +1,4 @@
+#include "include/main_application.hpp"
 #include "include/fractal_app.hpp"
 
 #include <gtkmm.h>
@@ -150,7 +151,7 @@ void FractalArea::reset()
 }
 
 
-FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VERTICAL)
+FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::VERTICAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto refBuilder {Gtk::Builder::create()};
@@ -201,7 +202,8 @@ FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VER
             [this](){
                 selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
                 fractalArea->set_selection(selection);
-                statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
+                if (statusLabel)
+                    statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
             }
         );
     if(iterScale) [[likely]]
@@ -218,8 +220,14 @@ FractalBox::FractalBox(Gtk::Label *parentLabel) : Gtk::Box(Gtk::Orientation::VER
     // Insert elements into Fractal Box
     insert_child_at_start(*header);
     insert_child_after(*fractalArea, *header);
-    statusLabel = parentLabel;
-    selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
-    statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
 }
 
+
+void FractalBox::on_realize() {
+    Gtk::Box::on_realize();
+    selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
+    statusLabel = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
+    if (!statusLabel) std::cout << "Status label not found" << std::endl;
+    if (statusLabel)
+        statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
+}
