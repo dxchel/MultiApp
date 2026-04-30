@@ -16,7 +16,6 @@ class MainApplication : public Gtk::Application
 
     Gtk::ApplicationWindow *mainWindow {};
 
-    Gtk::Label *statusLabel {};
     Gtk::Box *selectedApp {};
 
     /**
@@ -47,6 +46,7 @@ public:
      * @return New MainApplication object RefPtr.
      */
     static Glib::RefPtr<MainApplication> create();
+    Gtk::Label *statusLabel {};
 };
 
 #endif

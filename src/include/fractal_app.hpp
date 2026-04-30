@@ -63,8 +63,15 @@ class FractalBox : public Gtk::Box
     Gtk::Scale *iterScale {};
     FractalArea *fractalArea {};
     Gtk::Label *statusLabel {};
-
     std::string selection {"Mandelbrot"};
+
+    /**
+     * @brief Get Main Application status label.
+     *
+     * Gets Main Application status label after realize due to
+     * the box needing to be contained.
+     */
+    void on_realize() override;
 
 public:
     /**
@@ -73,7 +80,7 @@ public:
      * Creates FractalBox object using res/gtk/fractal_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
-    FractalBox(Gtk::Label* parentLabel = nullptr);
+    FractalBox();
 };
 
 #endif
