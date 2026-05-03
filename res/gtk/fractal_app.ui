@@ -3,47 +3,195 @@
 <interface>
   <!-- interface-name browser_app.ui -->
   <requires lib="gtk" version="4.8"/>
-  <object class="GtkBox" id="header_bar">
+  <object class="GtkBox" id="menu_bar">
     <property name="margin-bottom">7</property>
     <property name="margin-end">14</property>
     <property name="margin-start">14</property>
     <property name="margin-top">7</property>
+    <property name="orientation">vertical</property>
     <property name="spacing">7</property>
     <child>
-      <object class="GtkButton" id="reset_button">
-        <property name="icon-name">chronometer-reset</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkButton" id="save_button">
-        <property name="icon-name">document-save</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkDropDown" id="fractal_dropdown">
-        <property name="model">
-          <object class="GtkStringList">
-            <items>
-              <item translatable="yes">Mandelbrot</item>
-              <item translatable="yes">Julia</item>
-            </items>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkButton" id="reset_button">
+            <property name="icon-name">chronometer-reset</property>
           </object>
-        </property>
+        </child>
+        <child>
+          <object class="GtkButton" id="save_button">
+            <property name="icon-name">document-save</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="fractal_dropdown">
+            <property name="model">
+              <object class="GtkStringList">
+                <items>
+                  <item translatable="yes">Julia</item>
+                  <item translatable="yes">Mandelbrot</item>
+                </items>
+              </object>
+            </property>
+          </object>
+        </child>
       </object>
     </child>
     <child>
-      <object class="GtkLabel">
-        <property name="label">Detail:</property>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Detail</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScale" id="iter_scale">
+            <property name="adjustment">
+              <object class="GtkAdjustment">
+                <property name="lower">32</property>
+                <property name="upper">1024</property>
+                <property name="value">64</property>
+              </object>
+            </property>
+            <property name="digits">0</property>
+            <property name="draw-value">True</property>
+            <property name="show-fill-level">True</property>
+            <property name="width-request">200</property>
+          </object>
+        </child>
       </object>
     </child>
     <child>
-      <object class="GtkScale" id="iter_scale">
-        <property name="draw-value">True</property>
-        <property name="fill-level">1024.0</property>
-        <property name="hexpand">True</property>
-        <property name="round-digits">0</property>
-        <property name="show-fill-level">True</property>
-        <property name="value-pos">left</property>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkLabel">
+            <property name="label">R</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkScale" id="r_scale_min">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">100</property>
+                    <property name="value">40</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="draw-value">True</property>
+                <property name="width-request">200</property>
+                <property name="has-origin">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScale" id="r_scale_max">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">100</property>
+                    <property name="value">100</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="draw-value">True</property>
+                <property name="value-pos">bottom</property>
+                <property name="width-request">200</property>
+                <property name="has-origin">False</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkLabel">
+            <property name="label">G</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkScale" id="g_scale_min">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">100</property>
+                    <property name="value">10</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="draw-value">True</property>
+                <property name="width-request">200</property>
+                <property name="has-origin">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScale" id="g_scale_max">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">100</property>
+                    <property name="value">80</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="draw-value">True</property>
+                <property name="value-pos">bottom</property>
+                <property name="width-request">200</property>
+                <property name="has-origin">False</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <child>
+          <object class="GtkLabel">
+            <property name="label">B</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkScale" id="b_scale_min">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">100</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="draw-value">True</property>
+                <property name="width-request">200</property>
+                <property name="has-origin">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScale" id="b_scale_max">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">100</property>
+                    <property name="value">50</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="draw-value">True</property>
+                <property name="value-pos">bottom</property>
+                <property name="width-request">200</property>
+                <property name="has-origin">False</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </object>
