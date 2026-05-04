@@ -6,6 +6,7 @@
 
 #include "../../src/include/main_application.hpp"
 #include "../../src/include/browser_app.hpp"
+#include "../../src/include/fractal_app.hpp"
 
 
 /**
@@ -47,18 +48,45 @@ protected:
      * */
     BrowserTest();
 
-    static std::string get_uri_root(const std::string&);
-    void entry_uri_load(std::string uri="") const;
+    Browser *browser{};
+    WebKitWebView *web_view{};
+    Gtk::Box *header{};
+    Gtk::Button *back_button{},*forward_button{},
+        *home_button{}, *reload_button{},
+        *enter_button{};
+    Gtk::Entry *uri_entry{};
+    Gtk::MenuButton *menu_button{};
+};
 
-    Browser *browser;
-    WebKitWebView *web_view {};
-    Gtk::Box *header {};
-    Gtk::Button *back_button {};
-    Gtk::Button *forward_button {};
-    Gtk::Button *home_button {};
-    Gtk::Button *reload_button {};
-    Gtk::Entry *uri_entry {};
-    Gtk::Button *enter_button {};
-    Gtk::MenuButton *menu_button {};
+
+/**
+ * @brief Contains Fractal object and Structural/Functional tests.
+ *
+ * Class to create an object with test functions for the Fractal class,
+ * only contains a Fractal object, Structural and Functional test functions.
+ * */
+class FractalTest : public testing::Test
+{
+protected:
+    /**
+     * @brief Creates Fractal object fractal.
+     *
+     * Obtains Fractal object using default constructor for testing.
+     * */
+    FractalTest();
+
+    FractalBox *fractal{};
+    Gtk::Box *menu{}, *consts_box{};
+    Gtk::Button *reset_button{}, *save_button{};
+    Gtk::DropDown *fractal_dropdown{};
+    FractalArea *fractal_area{};
+    Gtk::Label *status_label{};
+    Gtk::Scale *iter_scale{},
+        *const_r_scale{}, *const_i_scale{},
+        *r_min_scale{}, *r_max_scale{},
+        *g_min_scale{}, *g_max_scale{},
+        *b_min_scale{}, *b_max_scale{};
+
+    std::string selection{};
 };
 #endif

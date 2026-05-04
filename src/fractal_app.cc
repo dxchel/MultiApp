@@ -38,9 +38,9 @@ void FractalArea::set_consts(double cr, double ci)
     { const_r = cr; const_i = ci; queue_draw(); }
 
 void FractalArea::set_r(double min, double max)
-    { r_lower_limit = min/100; r_upper_level = max/100; queue_draw(); }
+    { r_lower_level = min/100; r_upper_level = max/100; queue_draw(); }
 void FractalArea::set_g(double min, double max)
-    { g_lower_level = min/100; g_upeer_level = max/100; queue_draw(); }
+    { g_lower_level = min/100; g_upper_level = max/100; queue_draw(); }
 void FractalArea::set_b(double min, double max)
     { b_lower_level = min/100; b_upper_level = max/100; queue_draw(); }
 
@@ -50,12 +50,12 @@ void FractalArea::reset()
 void FractalArea::iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b) {
     if (iter == max_iter) { r = g = b = 0; return; }
     double level {static_cast<double>(iter) / max_iter},
-        r_mid {(r_upper_level-r_lower_limit)/2},
-        g_mid {(g_upeer_level-g_lower_level)/2},
+        r_mid {(r_upper_level-r_lower_level)/2},
+        g_mid {(g_upper_level-g_lower_level)/2},
         b_mid {(b_upper_level-b_lower_level)/2};
-    r = static_cast<uint8_t>(level > r_lower_limit && level < r_upper_level ?
-        255-(level-r_lower_limit-r_mid)*(level-r_lower_limit-r_mid)/r_mid/r_mid*255 : 0 );
-    g = static_cast<uint8_t>(level > g_lower_level && level < g_upeer_level ?
+    r = static_cast<uint8_t>(level > r_lower_level && level < r_upper_level ?
+        255-(level-r_lower_level-r_mid)*(level-r_lower_level-r_mid)/r_mid/r_mid*255 : 0 );
+    g = static_cast<uint8_t>(level > g_lower_level && level < g_upper_level ?
         255-(level-g_lower_level-g_mid)*(level-g_lower_level-g_mid)/g_mid/g_mid*255 : 0 );
     b = static_cast<uint8_t>(level > b_lower_level && level < b_upper_level ?
         255-(level-b_lower_level-b_mid)*(level-b_lower_level-b_mid)/b_mid/b_mid*255 : 0 );
@@ -149,7 +149,7 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
                             Cairo::ToyFontFace::Weight::NORMAL);
     cr->set_font_size(12);
     char buf[128];
-    snprintf(buf, sizeof(buf), "Center: (%.6f, %.6f)", cx + 0.5, cy);
+    snprintf(buf, sizeof(buf), "Center: (%.6f, %.6f)", cx, cy);
     cr->move_to(14, 26); cr->show_text(buf);
     snprintf(buf, sizeof(buf), "Range: %.2e   Iter: %d", range, max_iter);
     cr->move_to(14, 46); cr->show_text(buf);
