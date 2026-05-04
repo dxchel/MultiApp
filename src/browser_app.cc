@@ -125,6 +125,7 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
     if(menu_button) [[likely]] menu_button->set_visible(false);
 
     g_signal_connect(web_view, "load-changed", G_CALLBACK(web_view_load_changed), this);
+    g_signal_connect(web_view, "create", G_CALLBACK(on_create_cb), this);
     webkit_web_view_load_uri(web_view, HOME_URL);
 
     // Insert elements into Browser Box
@@ -141,16 +142,32 @@ void Browser::on_realize() {
 }
 
 
-void Browser::web_view_load_changed(WebKitWebView *webView,
-                                    const WebKitLoadEvent loadEvent,
-                                    gpointer userData)
+GtkWidget *Browser::on_create_cb(WebKitWebView *web_view,
+                                 WebKitNavigationAction *action,
+                                 gpointer)
 {
-    auto uri {webkit_web_view_get_uri(webView)};
-    auto browser {static_cast<Browser*>(userData)};
-    switch (loadEvent) {
+    WebKitURIRequest *request {webkit_navigation_action_get_request(action)};
+    const char *uri {webkit_uri_request_get_uri(request)};
+
+    if (uri && *uri) {
+        // Load in the same view instead of spawning a new window
+        webkit_web_view_load_uri(web_view, uri);
+    }
+
+    // Returning nullptr prevents WebKit from creating a new window
+    return nullptr;
+}
+
+void Browser::web_view_load_changed(WebKitWebView *web_view,
+                                    const WebKitLoadEvent load_event,
+                                    gpointer user_data)
+{
+    auto uri {webkit_web_view_get_uri(web_view)};
+    auto browser {static_cast<Browser*>(user_data)};
+    switch (load_event) {
         case WEBKIT_LOAD_STARTED:
-            browser->back_button->set_sensitive(webkit_web_view_can_go_back(webView));
-            browser->forward_button->set_sensitive(webkit_web_view_can_go_forward(webView));
+            browser->back_button->set_sensitive(webkit_web_view_can_go_back(web_view));
+            browser->forward_button->set_sensitive(webkit_web_view_can_go_forward(web_view));
             browser->reload_button->set_icon_name("gtk-stop");
             browser->uri_entry->set_sensitive(false);
             browser->enter_button->set_sensitive(false);
@@ -166,14 +183,14 @@ void Browser::web_view_load_changed(WebKitWebView *webView,
             break;
 
         case WEBKIT_LOAD_FINISHED:
-            browser->back_button->set_sensitive(webkit_web_view_can_go_back(webView));
-            browser->forward_button->set_sensitive(webkit_web_view_can_go_forward(webView));
+            browser->back_button->set_sensitive(webkit_web_view_can_go_back(web_view));
+            browser->forward_button->set_sensitive(webkit_web_view_can_go_forward(web_view));
             browser->reload_button->set_icon_name("gtk-convert");
             browser->uri_entry->set_sensitive(true);
             browser->uri_entry->set_text(uri);
             browser->enter_button->set_sensitive(true);
             if ( browser->status_label )
-                browser->status_label->set_text(static_cast<std::string>("Welcome to the browser! You're in page: ") + webkit_web_view_get_title(webView));
+                browser->status_label->set_text(static_cast<std::string>("Welcome to the browser! You're in page: ") + webkit_web_view_get_title(web_view));
             std::cout << "Load finished." << std::endl;
             break;
     }

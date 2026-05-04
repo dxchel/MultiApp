@@ -73,13 +73,26 @@ public:
      * Detect load event type and modify Browser widgets accordingly
      * for stopping load and disabling input.
      *
-     * @param[in] webView: webView that fired event.
-     * @param[in] loadEvent: Load event detected.
-     * @param[in] userData: User provided data, will use to pass browser object.
+     * @param[in] web_view: webView that fired event.
+     * @param[in] load_event: Load event detected.
+     * @param[in] user_data: User provided data, will use to pass browser object.
      */
-    static void web_view_load_changed(WebKitWebView *webView,
-                                      const WebKitLoadEvent loadEvent,
-                                      gpointer userData);
+    static void web_view_load_changed(WebKitWebView *web_view,
+                                      const WebKitLoadEvent load_event,
+                                      gpointer user_data);
+    /**
+     * @brief Function for webView load in new tab events.
+     *
+     * Detect load _blank event type and modify Browser widgets accordingly
+     * for stopping load and disabling input.
+     *
+     * @param[in] web_view: webView that fired event.
+     * @param[in] action: Action detected.
+     * @param[in] user_data: User provided data, will use to pass browser object.
+     */
+    static GtkWidget *on_create_cb(WebKitWebView *web_view,
+                                   WebKitNavigationAction *action,
+                                   gpointer user_data);
 };
 
 #endif
