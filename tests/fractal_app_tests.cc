@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <unordered_map>
 
 
 FractalTest::FractalTest() : fractal (Gtk::manage(new FractalBox())),
@@ -56,7 +57,10 @@ TEST_F(FractalTest, FractalStructuralTest)
     ASSERT_THAT(const_r_t, ::testing::Eq(const_r_scale));
     auto const_i_t {dynamic_cast<Gtk::Scale *>(const_r_scale->get_next_sibling())};
     ASSERT_THAT(const_i_t, ::testing::Eq(const_i_scale));
-    // Check a way to see if consts level gets hidden with mandelbrot
+
+    ASSERT_THAT(level->get_visible(), ::testing::Eq(true));
+    fractal_dropdown->set_selected(1);
+    ASSERT_THAT(level->get_visible(), ::testing::Eq(false));
 }
 
 TEST_F(FractalTest, FractalFunctionalTest)
@@ -101,8 +105,8 @@ TEST_F(FractalTest, FractalFunctionalTest)
     std::vector<std::string> options {"Mandelbrot", "Julia"};
     for (int i{}; i < 7; ++i)
     {
-        std::string selection_t{options[dist_string(gen)]};
-        fractal_area->set_selection(selection_t);
-        ASSERT_THAT(fractal_area->selection, ::testing::Eq(selection_t));
+        int selection_t{dist_string(gen)};
+        fractal_area->set_selection(options[selection_t]);
+        ASSERT_THAT(fractal_area->selection, ::testing::Eq(options[selection_t]));
     }
 }
