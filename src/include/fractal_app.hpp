@@ -50,8 +50,8 @@ class FractalArea : public Gtk::DrawingArea
     double cx{}, cy{}, range{},
         drag_start_cx{}, drag_start_cy{},
         const_r{}, const_i{},
-        r_lower_limit{}, r_upper_level{},
-        g_lower_level{}, g_upeer_level{},
+        r_lower_level{}, r_upper_level{},
+        g_lower_level{}, g_upper_level{},
         b_lower_level{}, b_upper_level{};
     int max_iter{};
 
@@ -146,6 +146,7 @@ public:
 class FractalBox : public Gtk::Box
 {
     friend class FractalTest;
+    friend class FractalTest_FractalFunctionalTest_Test;
 
     Gtk::Box *menu{}, *consts_box{};
     Gtk::Button *reset_button{}, *save_button{};
