@@ -14,9 +14,9 @@ class MainApplication : public Gtk::Application
 {
     friend class MainApplicationTest;
 
-    Gtk::ApplicationWindow *main_window {};
+    Gtk::ApplicationWindow *main_window{};
 
-    Gtk::Box *selected_app {};
+    Gtk::Box *selected_app{};
 
     /**
      * @brief Creates ApplicationWindow to show.
@@ -46,7 +46,7 @@ public:
      * @return New MainApplication object RefPtr.
      */
     static Glib::RefPtr<MainApplication> create();
-    Gtk::Label *status_label {};
+    Gtk::Label *status_label{};
 };
 
 #endif

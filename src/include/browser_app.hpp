@@ -17,17 +17,15 @@ class Browser : public Gtk::Box
 {
     friend class BrowserTest;
 
-    WebKitWebView *web_view {};
-    Gtk::Box *header {};
-    Gtk::Button *back_button {};
-    Gtk::Button *forward_button {};
-    Gtk::Button *home_button {};
-    Gtk::Button *reload_button {};
-    Gtk::Entry *uri_entry {};
-    Gtk::Button *enter_button {};
-    Gtk::MenuButton *menu_button {};
+    WebKitWebView *web_view{};
+    Gtk::Box *header{};
+    Gtk::Button *back_button{}, *forward_button{},
+        *home_button{}, *reload_button{},
+        *enter_button{};
+    Gtk::Entry *uri_entry{};
+    Gtk::MenuButton *menu_button{};
 
-    Gtk::Label *status_label {};
+    Gtk::Label *status_label{};
 
     /**
      * @brief Removes initial http(s)?:// and www. substrings from uri.
