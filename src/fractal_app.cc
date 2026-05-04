@@ -1,77 +1,93 @@
-#include "include/main_application.hpp"
 #include "include/fractal_app.hpp"
+
+#include <iostream>
+#include <any>
 
 #include <gtkmm.h>
 #include <cairo.h>
 #include <thread>
 
-#include <iostream>
 
-
-int mandelbrot(double cr, double ci, int max_iter) {
-    double zr = 0, zi = 0;
-    for (int i = 0; i < max_iter; ++i) {
-        double zr2 = zr * zr - zi * zi + cr;
-        double zi2 = 2.0 * zr * zi + ci;
+int mandelbrot(double cr, double ci, int max_iter, const std::vector<std::any>) {
+    double zr {}, zi {};
+    for (int i{}; i < max_iter; ++i) {
+        double zr2 {zr*zr - zi*zi + cr},
+            zi2 {2.0*zr*zi + ci};
         zr = zr2; zi = zi2;
-        if (zr * zr + zi * zi > 7.0) return i;
+        if (zr*zr + zi*zi > 7.0) return i;
     }
     return max_iter;
 }
 
-int julia(double cr, double ci, int max_iter) {
-    double zr = cr, zi = ci;
-    for (int i = 0; i < max_iter; ++i) {
-        double zr2 = zr * zr - zi * zi - 0.5125;
-        double zi2 = 2.0 * zr * zi + 0.5213;
+int julia(double cr, double ci, int max_iter, const std::vector<std::any> consts) {
+    double zr {cr}, zi {ci};
+    for (int i{}; i < max_iter; ++i) {
+        double zr2 {zr*zr - zi*zi + std::any_cast<double>(consts[0])},
+            zi2 {2.0*zr*zi + std::any_cast<double>(consts[1])};
         zr = zr2; zi = zi2;
-        if (zr * zr + zi * zi > 7.0) return i;
+        if (zr*zr + zi*zi > 7.0) return i;
     }
     return max_iter;
 }
 
-void iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b) {
+void FractalArea::set_selection(const std::string new_selection)
+    { selection = new_selection; queue_draw(); }
+void FractalArea::set_max_iter(int iter)
+    { max_iter = iter; queue_draw(); }
+void FractalArea::set_consts(double cr, double ci)
+    { const_r = cr; const_i = ci; queue_draw(); }
+
+void FractalArea::set_r(double min, double max)
+    { r_lower_limit = min/100; r_upper_level = max/100; queue_draw(); }
+void FractalArea::set_g(double min, double max)
+    { g_lower_level = min/100; g_upeer_level = max/100; queue_draw(); }
+void FractalArea::set_b(double min, double max)
+    { b_lower_level = min/100; b_upper_level = max/100; queue_draw(); }
+
+void FractalArea::reset()
+    { cx = -0.5; cy = 0.0; range = 3.5; queue_draw(); }
+
+void FractalArea::iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b) {
     if (iter == max_iter) { r = g = b = 0; return; }
-    double t {static_cast<double>(iter) / max_iter},
-        rll {0.4}, rul {1},
-        gll {0.1}, gul {0.8},
-        bll {}, bul {0.5},
-        rm {(rul-rll)/2},
-        gm {(gul-gll)/2},
-        bm {(bul-bll)/2};
-    r = static_cast<uint8_t>(t > rll && t < rul ? 255-(t-rll-rm)*(t-rll-rm)/rm/rm*255 : 0 );
-    g = static_cast<uint8_t>(t > gll && t < gul ? 255-(t-gll-gm)*(t-gll-gm)/gm/gm*255 : 0 );
-    b = static_cast<uint8_t>(t > bll && t < bul ? 255-(t-bll-bm)*(t-bll-bm)/bm/bm*255 : 0 );
+    double level {static_cast<double>(iter) / max_iter},
+        r_mid {(r_upper_level-r_lower_limit)/2},
+        g_mid {(g_upeer_level-g_lower_level)/2},
+        b_mid {(b_upper_level-b_lower_level)/2};
+    r = static_cast<uint8_t>(level > r_lower_limit && level < r_upper_level ?
+        255-(level-r_lower_limit-r_mid)*(level-r_lower_limit-r_mid)/r_mid/r_mid*255 : 0 );
+    g = static_cast<uint8_t>(level > g_lower_level && level < g_upeer_level ?
+        255-(level-g_lower_level-g_mid)*(level-g_lower_level-g_mid)/g_mid/g_mid*255 : 0 );
+    b = static_cast<uint8_t>(level > b_lower_level && level < b_upper_level ?
+        255-(level-b_lower_level-b_mid)*(level-b_lower_level-b_mid)/b_mid/b_mid*255 : 0 );
 }
 
 
-FractalArea::FractalArea(std::string selection) : Gtk::DrawingArea(),
+FractalArea::FractalArea(const std::string selection) : Gtk::DrawingArea(),
     cx{-0.5}, cy{0}, range{3.5},
     drag_start_cx{}, drag_start_cy{},
-    max_iter{64}, selection{selection},
+    surface{}, selection{selection},
     fractal_map{
-        { "Mandelbrot", mandelbrot },
-        { "Julia", julia }
+        { "Julia", julia },
+        { "Mandelbrot", mandelbrot }
     }
 {
     set_expand(true);
     set_draw_func(sigc::mem_fun(*this, &FractalArea::on_draw));
 
     // Mouse/touch controls
-    auto drag = Gtk::GestureDrag::create();
-    drag->signal_drag_begin().connect([this](double x, double y){
-        (void)x;(void)y;
+    auto drag {Gtk::GestureDrag::create()};
+    drag->signal_drag_begin().connect([this](double, double){
         drag_start_cx = cx; drag_start_cy = cy;
     });
     drag->signal_drag_update().connect([this](double dx, double dy){
-        double px_per_unit = get_width() / range;
-        cx = drag_start_cx - dx / px_per_unit;
-        cy = drag_start_cy + dy / px_per_unit;
+        double px_per_unit {get_width() / range};
+        cx = drag_start_cx - dx/px_per_unit;
+        cy = drag_start_cy + dy/px_per_unit;
         queue_draw();
     });
     add_controller(drag);
 
-    auto scroll = Gtk::EventControllerScroll::create();
+    auto scroll {Gtk::EventControllerScroll::create()};
     scroll->set_flags(Gtk::EventControllerScroll::Flags::VERTICAL);
     scroll->signal_scroll().connect([this](double, double dy) -> bool
     {
@@ -84,39 +100,42 @@ FractalArea::FractalArea(std::string selection) : Gtk::DrawingArea(),
 
 void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
 {
-    const int nthreads = static_cast<int>(std::thread::hardware_concurrency());
+    const int NTHREADS {static_cast<int>(std::thread::hardware_concurrency())};
     std::vector<std::thread> threads;
 
     // Get Cairo Surface
-    auto surface = Cairo::ImageSurface::create(Cairo::Surface::Format::RGB24, w, h);
-    uint8_t* dst = surface->get_data();
+    if (!surface || surface->get_width() != w || surface->get_height() != h)
+        surface = Cairo::ImageSurface::create(Cairo::Surface::Format::RGB24, w, h);
 
-    auto render_band = [&](int y0, int y1)
+    uint8_t* surface_data {surface->get_data()};
+
+    auto render_band {[&](int y0, int y1)
     {
-        for (int y = y0; y < y1; ++y)
+        int current_pixel {4*w*y0};
+        for (int y{y0}; y < y1; ++y)
         {
-            for (int x = 0; x < w; ++x)
+            for (int x{0}; x < w; ++x, current_pixel += 4)
             {
-                double cr = cx + (x - w/2.0) * range / w;
-                double ci = cy - (y - h/2.0) * range / w;
-                int iter = fractal_map.at(selection)(cr, ci, max_iter),
-                           idx = (y * w + x) * 4;
-                iter_to_rgb(iter, max_iter, dst[idx+2], dst[idx+1], dst[idx]);
+                double cr {cx + (x - w/2.0)*range/w},
+                    ci {cy - (y - h/2.0)*range/w};
+                int iter {fractal_map.at(selection)(cr, ci, max_iter, {const_r, const_i})};
+                iter_to_rgb(iter, max_iter, surface_data[current_pixel + 2], surface_data[current_pixel + 1], surface_data[current_pixel]);
             }
         }
-    };
+    }};
 
-    int band = h / nthreads;
-    for (int t = 0; t < nthreads; ++t)
+    int band {h/NTHREADS};
+    for (int t{}; t < NTHREADS; ++t)
     {
-        int y0 = t * band;
-        int y1 = (t == nthreads-1) ? h : y0 + band;
+        int y0 {t*band},
+            y1 {(t == NTHREADS-1) ? h : y0 + band};
         threads.emplace_back(render_band, y0, y1);
     }
 
     for (auto &th : threads) th.join();
 
-    // surface->mark_dirty();
+    surface->flush();
+    surface->mark_dirty();
     cr->set_source(surface, 0, 0);
     cr->paint();
 
@@ -136,28 +155,14 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
     cr->move_to(14, 46); cr->show_text(buf);
 }
 
-void FractalArea::set_max_iter(int v)
-    { max_iter = v; queue_draw(); }
 
-void FractalArea::set_selection(const std::string new_selection)
-    { selection = new_selection; queue_draw(); }
-
-int FractalArea::get_max_iter() const { return max_iter; }
-
-void FractalArea::reset()
-{
-    cx = -0.5; cy = 0.0; range = 3.5;
-    queue_draw();
-}
-
-
-FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::VERTICAL)
+FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
-    auto refBuilder {Gtk::Builder::create()};
+    auto ref_builder {Gtk::Builder::create()};
     try
     {
-        refBuilder->add_from_file("res/gtk/fractal_app.ui");
+        ref_builder->add_from_file("res/gtk/fractal_app.ui");
     }
     catch(const Glib::FileError& ex)
     {
@@ -176,58 +181,109 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::VERTICAL)
     }
 
     // Get the GtkBuilder-instantiated nav and header:
-    header = Gtk::manage(refBuilder->get_widget<Gtk::Box>("header_bar"));
+    menu = Gtk::manage(ref_builder->get_widget<Gtk::Box>("menu_bar"));
 
     // Get the GtkBuilder-instantiated buttons, and connect a signal handler
-    resetButton = refBuilder->get_widget<Gtk::Button>("reset_button");
-    saveButton = refBuilder->get_widget<Gtk::Button>("save_button");
-    fractalDropDown = refBuilder->get_widget<Gtk::DropDown>("fractal_dropdown");
-    iterScale = refBuilder->get_widget<Gtk::Scale>("iter_scale");
-    fractalArea = Gtk::manage(new FractalArea(selection));
+    reset_button = ref_builder->get_widget<Gtk::Button>("reset_button");
+    save_button = ref_builder->get_widget<Gtk::Button>("save_button");
+    fractal_dropdown = ref_builder->get_widget<Gtk::DropDown>("fractal_dropdown");
+    consts_box = ref_builder->get_widget<Gtk::Box>("consts_box");
+
+    fractal_area = Gtk::manage(new FractalArea());
 
     // Add Callbacks
-    if(resetButton) [[likely]]
-        resetButton->signal_clicked().connect
+    if(reset_button) [[likely]]
+        reset_button->signal_clicked().connect
         (
-            [this](){ std::cout << "Reset button pressed!" << std::endl; fractalArea->reset(); }
+            [this](){ fractal_area->reset(); }
         );
-    if(saveButton) [[likely]]
-        saveButton->signal_clicked().connect
+    if(save_button) [[likely]]
+        save_button->signal_clicked().connect
         (
-            [this](){ std::cout << "Save button pressed!" << std::endl;}
+            [](){ std::cout << "Save button pressed!" << std::endl;}
         );
-    if(fractalDropDown) [[likely]]
-        fractalDropDown->property_selected().signal_changed().connect
+    if(fractal_dropdown) [[likely]]
+        fractal_dropdown->property_selected().signal_changed().connect
         (
             [this](){
-                selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
-                fractalArea->set_selection(selection);
-                if (statusLabel)
-                    statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
+                selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractal_dropdown->get_selected_item())->get_string();
+                fractal_area->set_selection(selection);
+                if (selection != "Julia")
+                    consts_box->hide();
+                else
+                    consts_box->show();
+
+                if (status_label)
+                    status_label->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
             }
         );
-    if(iterScale) [[likely]]
+
+    iter_scale = ref_builder->get_widget<Gtk::Scale>("iter_scale");
+    if(iter_scale) [[likely]]
     {
-        iterScale->set_range(32, 1024);
-        iterScale->set_value(64);
-        iterScale->set_size_request(180, -1);
-        iterScale->set_draw_value(true);
-        iterScale->signal_value_changed().connect([this]{
-            fractalArea->set_max_iter(static_cast<int>(iterScale->get_value()));
+        iter_scale->signal_value_changed().connect([this]{
+            fractal_area->set_max_iter(static_cast<int>(iter_scale->get_value()));
         });
+        fractal_area->set_max_iter(static_cast<int>(iter_scale->get_value()));
+    }
+    r_min_scale = ref_builder->get_widget<Gtk::Scale>("r_scale_min");
+    r_max_scale = ref_builder->get_widget<Gtk::Scale>("r_scale_max");
+    if(r_min_scale && r_max_scale) [[likely]]
+    {
+        auto r_change {[this] {
+                fractal_area->set_r(r_min_scale->get_value(), r_max_scale->get_value());
+            }};
+        r_min_scale->signal_value_changed().connect(r_change);
+        r_max_scale->signal_value_changed().connect(r_change);
+        fractal_area->set_r(r_min_scale->get_value(), r_max_scale->get_value());
+    }
+    g_min_scale = ref_builder->get_widget<Gtk::Scale>("g_scale_min");
+    g_max_scale = ref_builder->get_widget<Gtk::Scale>("g_scale_max");
+    if(g_min_scale && g_max_scale) [[likely]]
+    {
+        auto g_change {[this] {
+                fractal_area->set_g(g_min_scale->get_value(), g_max_scale->get_value());
+            }};
+        g_min_scale->signal_value_changed().connect(g_change);
+        g_max_scale->signal_value_changed().connect(g_change);
+        fractal_area->set_g(g_min_scale->get_value(), g_max_scale->get_value());
+    }
+    b_min_scale = ref_builder->get_widget<Gtk::Scale>("b_scale_min");
+    b_max_scale = ref_builder->get_widget<Gtk::Scale>("b_scale_max");
+    if(b_min_scale && b_max_scale) [[likely]]
+    {
+        auto b_change {[this] {
+                fractal_area->set_b(b_min_scale->get_value(), b_max_scale->get_value());
+            }};
+        b_min_scale->signal_value_changed().connect(b_change);
+        b_max_scale->signal_value_changed().connect(b_change);
+        fractal_area->set_b(b_min_scale->get_value(), b_max_scale->get_value());
+    }
+    const_r_scale = ref_builder->get_widget<Gtk::Scale>("const_r_scale");
+    const_i_scale = ref_builder->get_widget<Gtk::Scale>("const_i_scale");
+    if(const_r_scale && const_i_scale) [[likely]]
+    {
+        auto consts_change {[this] {
+                fractal_area->set_consts(const_r_scale->get_value(), const_i_scale->get_value());
+            }};
+        const_r_scale->signal_value_changed().connect(consts_change);
+        const_i_scale->signal_value_changed().connect(consts_change);
+        fractal_area->set_consts(const_r_scale->get_value(), const_i_scale->get_value());
     }
 
+
     // Insert elements into Fractal Box
-    insert_child_at_start(*header);
-    insert_child_after(*fractalArea, *header);
+    insert_child_at_start(*menu);
+    insert_child_after(*fractal_area, *menu);
 }
 
 
 void FractalBox::on_realize() {
     Gtk::Box::on_realize();
-    selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractalDropDown->get_selected_item())->get_string();
-    statusLabel = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
-    if (!statusLabel) std::cout << "Status label not found" << std::endl;
-    if (statusLabel)
-        statusLabel->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
+    selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractal_dropdown->get_selected_item())->get_string();
+    status_label = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
+    if (!status_label)
+        std::cout << "Status label not found" << std::endl;
+    if (status_label)
+        status_label->set_text("Welcome to the Fractal creator! You're using the " + selection + " algorithm");
 }

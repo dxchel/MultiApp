@@ -6,11 +6,11 @@
 #include <gmock/gmock.h>
 
 
-BrowserTest::BrowserTest() : browser (Gtk::manage(new Browser())), webView {browser->webView},
-    header {browser->header}, backButton {browser->backButton},
-    forwardButton {browser->forwardButton}, homeButton {browser->homeButton},
-    reloadButton {browser->reloadButton}, uriEntry {browser->uriEntry},
-    enterButton {browser->enterButton}, menuButton {browser->menuButton} {};
+BrowserTest::BrowserTest() : browser (Gtk::manage(new Browser())), web_view {browser->web_view},
+    header {browser->header}, back_button {browser->back_button},
+    forward_button {browser->forward_button}, home_button {browser->home_button},
+    reload_button {browser->reload_button}, uri_entry {browser->uri_entry},
+    enter_button {browser->enter_button}, menu_button {browser->menu_button} {};
 
 std::string BrowserTest::get_uri_root(const std::string& uri) { return Browser::get_uri_root(uri); }
 void BrowserTest::entry_uri_load(std::string uri) const { browser->entry_uri_load(uri); }
@@ -55,7 +55,7 @@ TEST_F(BrowserTest, BrowserFunctionalTest)
         std::cerr << "WebView not initialized to https://www.github.com/dxchel/MultiApp." << std::endl;
         return BrowserAppError::webview_error;
     }*/
-    std::vector<std::string> urisToLoad
+    std::vector<std::string> uris_to_load
     {
         "google.com/",
         "https://github.com/",
@@ -66,23 +66,23 @@ TEST_F(BrowserTest, BrowserFunctionalTest)
         "www.github.com/dxchel/MultiApp/",
         "Hello World",
     };
-    std::string previousUri {""};
-    std::stack<std::string> uriStack {};
-    for(auto &uri : urisToLoad)
+    std::string previous_uri {""};
+    std::stack<std::string> uri_stack {};
+    for(auto &uri : uris_to_load)
     {
-        uriEntry->set_text(uri);
+        uri_entry->set_text(uri);
         entry_uri_load();
-        if(get_uri_root(uri) != get_uri_root(previousUri))
+        if(get_uri_root(uri) != get_uri_root(previous_uri))
         {
-            uriStack.push(uri);
-            previousUri = uri;
+            uri_stack.push(uri);
+            previous_uri = uri;
         }
         if(uri.find(' ') < uri.size())
         {
             std::replace(uri.begin(), uri.end(), ' ', '+');
             uri = "https://www.google.com/search?q=" + uri;
         }
-        ASSERT_EQ(get_uri_root(uri), get_uri_root(webkit_web_view_get_uri(webView))) <<
-            "WebView not directed to " << uri << ", got " << webkit_web_view_get_uri(webView) << " instead." << std::endl;
+        ASSERT_EQ(get_uri_root(uri), get_uri_root(webkit_web_view_get_uri(web_view))) <<
+            "WebView not directed to " << uri << ", got " << webkit_web_view_get_uri(web_view) << " instead." << std::endl;
     }
 }

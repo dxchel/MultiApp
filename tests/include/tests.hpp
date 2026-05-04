@@ -27,7 +27,7 @@ protected:
 
     Gtk::ApplicationWindow* create_window();
 
-    Glib::RefPtr<MainApplication> mainApp;
+    Glib::RefPtr<MainApplication> main_app;
 };
 
 
@@ -51,15 +51,14 @@ protected:
     void entry_uri_load(std::string uri="") const;
 
     Browser *browser;
-    WebKitWebView *webView {};
+    WebKitWebView *web_view {};
     Gtk::Box *header {};
-    Gtk::ScrolledWindow *scroller {};
-    Gtk::Button *backButton {};
-    Gtk::Button *forwardButton {};
-    Gtk::Button *homeButton {};
-    Gtk::Button *reloadButton {};
-    Gtk::Entry *uriEntry {};
-    Gtk::Button *enterButton {};
-    Gtk::MenuButton *menuButton {};
+    Gtk::Button *back_button {};
+    Gtk::Button *forward_button {};
+    Gtk::Button *home_button {};
+    Gtk::Button *reload_button {};
+    Gtk::Entry *uri_entry {};
+    Gtk::Button *enter_button {};
+    Gtk::MenuButton *menu_button {};
 };
 #endif
