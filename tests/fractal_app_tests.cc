@@ -1,7 +1,8 @@
 #include "gtkmm/dropdown.h"
 #include "include/tests.hpp"
 
-#include <iostream>
+#include "gtest/gtest.h"
+#include <random>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -55,8 +56,53 @@ TEST_F(FractalTest, FractalStructuralTest)
     ASSERT_THAT(const_r_t, ::testing::Eq(const_r_scale));
     auto const_i_t {dynamic_cast<Gtk::Scale *>(const_r_scale->get_next_sibling())};
     ASSERT_THAT(const_i_t, ::testing::Eq(const_i_scale));
+    // Check a way to see if consts level gets hidden with mandelbrot
 }
 
 TEST_F(FractalTest, FractalFunctionalTest)
 {
+    ASSERT_THAT(fractal_area->fractal_map.at("Mandelbrot")(0, 0, 1024, {}), ::testing::Eq(1024));
+    ASSERT_THAT(fractal_area->fractal_map.at("Mandelbrot")(2.5, 2.5, 1024, {}), ::testing::Eq(0));
+    ASSERT_THAT(fractal_area->fractal_map.at("Mandelbrot")(-0.75, 0.2, 1024, {}), ::testing::Eq(16));
+
+    ASSERT_THAT(fractal_area->fractal_map.at("Julia")(-0.3713, 0.23418, 1024, {-0.5125, 0.5213}), ::testing::Eq(419));
+    ASSERT_THAT(fractal_area->fractal_map.at("Julia")(2.5, 2.5, 1024, {-0.5125, 0.5213}), ::testing::Eq(0));
+    ASSERT_THAT(fractal_area->fractal_map.at("Julia")(0, 0, 1024, {-0.5125, 0.5213}), ::testing::Eq(317));
+    ASSERT_THAT(fractal_area->fractal_map.at("Julia")(-0.5, 0, 1024, {-0.5125, 0.5213}), ::testing::Eq(30));
+
+    std::mt19937 gen(std::random_device{}());
+    std::uniform_int_distribution<int> dist_i(0, 1024);
+    int iter_t {dist_i(gen)};
+    fractal_area->set_max_iter(iter_t);
+    ASSERT_THAT(fractal_area->max_iter, ::testing::Eq(iter_t));
+    std::uniform_real_distribution<double> dist_rgb(0, 100);
+    double r_min_t {dist_rgb(gen)};
+    double r_max_t {dist_rgb(gen)};
+    fractal_area->set_r(r_min_t, r_max_t);
+    ASSERT_THAT(fractal_area->r_lower_level, ::testing::Eq(r_min_t/100));
+    ASSERT_THAT(fractal_area->r_upper_level, ::testing::Eq(r_max_t/100));
+    double g_min_t {dist_rgb(gen)};
+    double g_max_t {dist_rgb(gen)};
+    fractal_area->set_g(g_min_t, g_max_t);
+    ASSERT_THAT(fractal_area->g_lower_level, ::testing::Eq(g_min_t/100));
+    ASSERT_THAT(fractal_area->g_upper_level, ::testing::Eq(g_max_t/100));
+    double b_min_t {dist_rgb(gen)};
+    double b_max_t {dist_rgb(gen)};
+    fractal_area->set_b(b_min_t, b_max_t);
+    ASSERT_THAT(fractal_area->b_lower_level, ::testing::Eq(b_min_t/100));
+    ASSERT_THAT(fractal_area->b_upper_level, ::testing::Eq(b_max_t/100));
+    std::uniform_real_distribution<double> dist_c(-1, 1);
+    double c_r_t {dist_c(gen)};
+    double c_i_t {dist_c(gen)};
+    fractal_area->set_consts(c_r_t, c_i_t);
+    ASSERT_THAT(fractal_area->const_r, ::testing::Eq(c_r_t));
+    ASSERT_THAT(fractal_area->const_i, ::testing::Eq(c_i_t));
+    std::uniform_int_distribution<int> dist_string(0, 1);
+    std::vector<std::string> options {"Mandelbrot", "Julia"};
+    for (int i{}; i < 7; ++i)
+    {
+        std::string selection_t{options[dist_string(gen)]};
+        fractal_area->set_selection(selection_t);
+        ASSERT_THAT(fractal_area->selection, ::testing::Eq(selection_t));
+    }
 }
