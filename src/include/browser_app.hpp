@@ -16,6 +16,7 @@
 class Browser : public Gtk::Box
 {
     friend class BrowserTest;
+    friend class BrowserTest_BrowserFunctionalTest_Test;
 
     WebKitWebView *web_view{};
     Gtk::Box *header{};

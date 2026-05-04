@@ -45,6 +45,7 @@ int julia(double, double, int, const std::vector<std::any> = {-0.5125, 0.5213});
 class FractalArea : public Gtk::DrawingArea
 {
     friend class FractalTest;
+    friend class FractalTest_FractalFunctionalTest_Test;
 
     double cx{}, cy{}, range{},
         drag_start_cx{}, drag_start_cy{},
