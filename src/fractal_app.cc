@@ -149,7 +149,7 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
                             Cairo::ToyFontFace::Weight::NORMAL);
     cr->set_font_size(12);
     char buf[128];
-    snprintf(buf, sizeof(buf), "Center: (%.6f, %.6f)", cx + 0.5, cy);
+    snprintf(buf, sizeof(buf), "Center: (%.6f, %.6f)", cx, cy);
     cr->move_to(14, 26); cr->show_text(buf);
     snprintf(buf, sizeof(buf), "Range: %.2e   Iter: %d", range, max_iter);
     cr->move_to(14, 46); cr->show_text(buf);
