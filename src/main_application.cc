@@ -3,6 +3,7 @@
 #include "include/fractal_app.hpp"
 
 #include <iostream>
+
 #include <gtkmm.h>
 
 MainApplication::MainApplication() :
@@ -22,10 +23,10 @@ void MainApplication::on_activate()
 Gtk::ApplicationWindow* MainApplication::create_window()
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
-    auto refBuilder {Gtk::Builder::create()};
+    auto ref_builder {Gtk::Builder::create()};
     try
     {
-        refBuilder->add_from_file("res/gtk/main_app.ui");
+        ref_builder->add_from_file("res/gtk/main_app.ui");
     }
     catch(const Glib::FileError& ex)
     {
@@ -43,37 +44,37 @@ Gtk::ApplicationWindow* MainApplication::create_window()
         throw ex;
     }
 
-    statusLabel = Gtk::manage(refBuilder->get_widget<Gtk::Label>("main_status_label"));
+    status_label = Gtk::manage(ref_builder->get_widget<Gtk::Label>("main_status_label"));
 
-    mainWindow = Gtk::manage(refBuilder->get_widget<Gtk::ApplicationWindow>("main_window"));
-    auto mainFractalBox {Gtk::manage(refBuilder->get_widget<Gtk::Box>("Fractal"))};
+    main_window = Gtk::manage(ref_builder->get_widget<Gtk::ApplicationWindow>("main_window"));
+    auto main_fractal_box {Gtk::manage(ref_builder->get_widget<Gtk::Box>("Fractal"))};
 
-    selectedApp = Gtk::manage(new FractalBox());
-    mainFractalBox->append(*selectedApp);
+    selected_app = Gtk::manage(new FractalBox());
+    main_fractal_box->append(*selected_app);
 
-    auto mainNotebook {Gtk::manage(refBuilder->get_widget<Gtk::Notebook>("main_notebook"))};
-    mainNotebook->signal_switch_page().connect([this](Gtk::Widget* page, guint page_number)
+    auto main_notebook {Gtk::manage(ref_builder->get_widget<Gtk::Notebook>("main_notebook"))};
+    main_notebook->signal_switch_page().connect([this](Gtk::Widget* page, guint page_number)
     {
         auto app {dynamic_cast<Gtk::Box *>(page)};
-        if (selectedApp)
+        if (selected_app)
         {
-            selectedApp->unparent();
-            selectedApp = nullptr;
+            selected_app->unparent();
+            selected_app = nullptr;
         }
 
         switch(page_number)
         {
         case 0:
-            selectedApp = Gtk::manage(new FractalBox());
-            app->append(*selectedApp);
+            selected_app = Gtk::manage(new FractalBox());
+            app->append(*selected_app);
             break;
         case 1:
-            selectedApp = Gtk::manage(new Browser());
-            app->append(*selectedApp);
+            selected_app = Gtk::manage(new Browser());
+            app->append(*selected_app);
             break;
         }
     });
 
-    add_window(*mainWindow);
-    return mainWindow;
+    add_window(*main_window);
+    return main_window;
 }

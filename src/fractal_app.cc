@@ -32,8 +32,8 @@ int julia(double cr, double ci, int max_iter, const std::vector<std::any> consts
 
 void FractalArea::set_selection(const std::string new_selection)
     { selection = new_selection; queue_draw(); }
-void FractalArea::set_max_iter(int v)
-    { max_iter = v; queue_draw(); }
+void FractalArea::set_max_iter(int iter)
+    { max_iter = iter; queue_draw(); }
 void FractalArea::set_consts(double cr, double ci)
     { const_r = cr; const_i = ci; queue_draw(); }
 
@@ -159,10 +159,10 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
 FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
-    auto refBuilder {Gtk::Builder::create()};
+    auto ref_builder {Gtk::Builder::create()};
     try
     {
-        refBuilder->add_from_file("res/gtk/fractal_app.ui");
+        ref_builder->add_from_file("res/gtk/fractal_app.ui");
     }
     catch(const Glib::FileError& ex)
     {
@@ -181,13 +181,13 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
     }
 
     // Get the GtkBuilder-instantiated nav and header:
-    menu = Gtk::manage(refBuilder->get_widget<Gtk::Box>("menu_bar"));
+    menu = Gtk::manage(ref_builder->get_widget<Gtk::Box>("menu_bar"));
 
     // Get the GtkBuilder-instantiated buttons, and connect a signal handler
-    reset_button = refBuilder->get_widget<Gtk::Button>("reset_button");
-    save_button = refBuilder->get_widget<Gtk::Button>("save_button");
-    fractal_dropdown = refBuilder->get_widget<Gtk::DropDown>("fractal_dropdown");
-    consts_box = refBuilder->get_widget<Gtk::Box>("consts_box");
+    reset_button = ref_builder->get_widget<Gtk::Button>("reset_button");
+    save_button = ref_builder->get_widget<Gtk::Button>("save_button");
+    fractal_dropdown = ref_builder->get_widget<Gtk::DropDown>("fractal_dropdown");
+    consts_box = ref_builder->get_widget<Gtk::Box>("consts_box");
 
     fractal_area = Gtk::manage(new FractalArea());
 
@@ -218,7 +218,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
             }
         );
 
-    iter_scale = refBuilder->get_widget<Gtk::Scale>("iter_scale");
+    iter_scale = ref_builder->get_widget<Gtk::Scale>("iter_scale");
     if(iter_scale) [[likely]]
     {
         iter_scale->signal_value_changed().connect([this]{
@@ -226,8 +226,8 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
         });
         fractal_area->set_max_iter(static_cast<int>(iter_scale->get_value()));
     }
-    r_min_scale = refBuilder->get_widget<Gtk::Scale>("r_scale_min");
-    r_max_scale = refBuilder->get_widget<Gtk::Scale>("r_scale_max");
+    r_min_scale = ref_builder->get_widget<Gtk::Scale>("r_scale_min");
+    r_max_scale = ref_builder->get_widget<Gtk::Scale>("r_scale_max");
     if(r_min_scale && r_max_scale) [[likely]]
     {
         auto r_change {[this] {
@@ -237,8 +237,8 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
         r_max_scale->signal_value_changed().connect(r_change);
         fractal_area->set_r(r_min_scale->get_value(), r_max_scale->get_value());
     }
-    g_min_scale = refBuilder->get_widget<Gtk::Scale>("g_scale_min");
-    g_max_scale = refBuilder->get_widget<Gtk::Scale>("g_scale_max");
+    g_min_scale = ref_builder->get_widget<Gtk::Scale>("g_scale_min");
+    g_max_scale = ref_builder->get_widget<Gtk::Scale>("g_scale_max");
     if(g_min_scale && g_max_scale) [[likely]]
     {
         auto g_change {[this] {
@@ -248,8 +248,8 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
         g_max_scale->signal_value_changed().connect(g_change);
         fractal_area->set_g(g_min_scale->get_value(), g_max_scale->get_value());
     }
-    b_min_scale = refBuilder->get_widget<Gtk::Scale>("b_scale_min");
-    b_max_scale = refBuilder->get_widget<Gtk::Scale>("b_scale_max");
+    b_min_scale = ref_builder->get_widget<Gtk::Scale>("b_scale_min");
+    b_max_scale = ref_builder->get_widget<Gtk::Scale>("b_scale_max");
     if(b_min_scale && b_max_scale) [[likely]]
     {
         auto b_change {[this] {
@@ -259,8 +259,8 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
         b_max_scale->signal_value_changed().connect(b_change);
         fractal_area->set_b(b_min_scale->get_value(), b_max_scale->get_value());
     }
-    const_r_scale = refBuilder->get_widget<Gtk::Scale>("const_r_scale");
-    const_i_scale = refBuilder->get_widget<Gtk::Scale>("const_i_scale");
+    const_r_scale = ref_builder->get_widget<Gtk::Scale>("const_r_scale");
+    const_i_scale = ref_builder->get_widget<Gtk::Scale>("const_i_scale");
     if(const_r_scale && const_i_scale) [[likely]]
     {
         auto consts_change {[this] {

@@ -4,14 +4,14 @@
 #include <gmock/gmock.h>
 
 
-MainApplicationTest::MainApplicationTest() : mainApp (MainApplication::create()) {};
+MainApplicationTest::MainApplicationTest() : main_app (MainApplication::create()) {};
 
 
-Gtk::ApplicationWindow* MainApplicationTest::create_window() { return mainApp->create_window(); }
+Gtk::ApplicationWindow* MainApplicationTest::create_window() { return main_app->create_window(); }
 
 TEST_F(MainApplicationTest, MainApplicationStructureTest)
 {
-    ASSERT_THAT(mainApp, ::testing::NotNull());
+    ASSERT_THAT(main_app, ::testing::NotNull());
     auto window {dynamic_cast<Gtk::Window *>(create_window())};
     ASSERT_THAT(window, ::testing::NotNull());
     auto box {dynamic_cast<Gtk::Box *>(window->get_child())};

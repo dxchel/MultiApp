@@ -17,17 +17,17 @@ class Browser : public Gtk::Box
 {
     friend class BrowserTest;
 
-    WebKitWebView *webView {};
+    WebKitWebView *web_view {};
     Gtk::Box *header {};
-    Gtk::Button *backButton {};
-    Gtk::Button *forwardButton {};
-    Gtk::Button *homeButton {};
-    Gtk::Button *reloadButton {};
-    Gtk::Entry *uriEntry {};
-    Gtk::Button *enterButton {};
-    Gtk::MenuButton *menuButton {};
+    Gtk::Button *back_button {};
+    Gtk::Button *forward_button {};
+    Gtk::Button *home_button {};
+    Gtk::Button *reload_button {};
+    Gtk::Entry *uri_entry {};
+    Gtk::Button *enter_button {};
+    Gtk::MenuButton *menu_button {};
 
-    Gtk::Label *statusLabel {};
+    Gtk::Label *status_label {};
 
     /**
      * @brief Removes initial http(s)?:// and www. substrings from uri.
@@ -38,7 +38,7 @@ class Browser : public Gtk::Box
      *
      * @return uri without http(s)?:// and www. substrings.
      */
-    static std::string get_uri_root(const std::string&);
+    static std::string get_uri_root(const std::string& uri);
 
     /**
      * @brief Run checks and load web page requested into webView.

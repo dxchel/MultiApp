@@ -1,10 +1,10 @@
 #include "include/browser_app.hpp"
 
-#include <gtkmm.h>
-#include <webkit/webkit.h>
-
 #include <iostream>
 #include <regex>
+
+#include <gtkmm.h>
+#include <webkit/webkit.h>
 
 
 std::string Browser::get_uri_root(const std::string &uri)
@@ -17,7 +17,7 @@ void Browser::entry_uri_load(std::string uri) const
 {
     if(uri == "") [[unlikely]]
         // Get entry text
-        uri = uriEntry->get_text();
+        uri = uri_entry->get_text();
 
     // Is current URI a web page.
     if(uri.find(' ') > uri.size() &&
@@ -40,19 +40,19 @@ void Browser::entry_uri_load(std::string uri) const
     }
 
     // Reload if the requested URI is the same as current
-    if(get_uri_root(webkit_web_view_get_uri(webView)) != get_uri_root(uri)) [[likely]]
-        webkit_web_view_load_uri(webView, uri.c_str());
+    if(get_uri_root(webkit_web_view_get_uri(web_view)) != get_uri_root(uri)) [[likely]]
+        webkit_web_view_load_uri(web_view, uri.c_str());
     else [[unlikely]]
-        webkit_web_view_reload(webView);
+        webkit_web_view_reload(web_view);
 }
 
 Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
 {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
-    auto refBuilder {Gtk::Builder::create()};
+    auto ref_builder {Gtk::Builder::create()};
     try
     {
-        refBuilder->add_from_file("res/gtk/browser_app.ui");
+        ref_builder->add_from_file("res/gtk/browser_app.ui");
     }
     catch(const Glib::FileError& ex)
     {
@@ -71,73 +71,73 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
     }
 
     // Get the GtkBuilder-instantiated nav and header:
-    header = Gtk::manage(refBuilder->get_widget<Gtk::Box>("header_bar"));
+    header = Gtk::manage(ref_builder->get_widget<Gtk::Box>("header_bar"));
 
     // Get the GtkBuilder-instantiated browser_scroller, and connect WebKitWebView with home site loaded
-    webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
-    auto webViewWidget {Glib::wrap(GTK_WIDGET(webView))};
-    g_object_ref_sink(webViewWidget->gobj());
-    webViewWidget->set_name("browser_webview");
-    webViewWidget->set_vexpand(true);
+    web_view = WEBKIT_WEB_VIEW(webkit_web_view_new());
+    auto web_view_widget {Glib::wrap(GTK_WIDGET(web_view))};
+    g_object_ref_sink(web_view_widget->gobj());
+    web_view_widget->set_name("browser_webview");
+    web_view_widget->set_vexpand(true);
 
     // Get the GtkBuilder-instantiated buttons, and connect a signal handler
-    backButton = refBuilder->get_widget<Gtk::Button>("back_button");
-    forwardButton = refBuilder->get_widget<Gtk::Button>("forward_button");
-    homeButton = refBuilder->get_widget<Gtk::Button>("home_button");
-    reloadButton = refBuilder->get_widget<Gtk::Button>("reload_button");
-    uriEntry = refBuilder->get_widget<Gtk::Entry>("header_entry");
-    enterButton = refBuilder->get_widget<Gtk::Button>("enter_button");
-    menuButton = refBuilder->get_widget<Gtk::MenuButton>("header_menu");
+    back_button = ref_builder->get_widget<Gtk::Button>("back_button");
+    forward_button = ref_builder->get_widget<Gtk::Button>("forward_button");
+    home_button = ref_builder->get_widget<Gtk::Button>("home_button");
+    reload_button = ref_builder->get_widget<Gtk::Button>("reload_button");
+    uri_entry = ref_builder->get_widget<Gtk::Entry>("header_entry");
+    enter_button = ref_builder->get_widget<Gtk::Button>("enter_button");
+    menu_button = ref_builder->get_widget<Gtk::MenuButton>("header_menu");
 
     // Add Callbacks
-    if(backButton) [[likely]]
-        backButton->signal_clicked().connect
+    if(back_button) [[likely]]
+        back_button->signal_clicked().connect
         (
-            [this](){ webkit_web_view_go_back(webView);}
+            [this](){ webkit_web_view_go_back(web_view);}
         );
-    if(forwardButton) [[likely]]
-        forwardButton->signal_clicked().connect
+    if(forward_button) [[likely]]
+        forward_button->signal_clicked().connect
         (
-            [this](){ webkit_web_view_go_forward(webView);}
+            [this](){ webkit_web_view_go_forward(web_view);}
         );
-    if(homeButton) [[likely]]
-        homeButton->signal_clicked().connect
+    if(home_button) [[likely]]
+        home_button->signal_clicked().connect
         (
             [this](){ entry_uri_load(HOME_URL);}
         );
-    if(reloadButton) [[likely]]
-        reloadButton->signal_clicked().connect
+    if(reload_button) [[likely]]
+        reload_button->signal_clicked().connect
         (
             [this]()
             {
-                webkit_web_view_is_loading(webView) ?
-                webkit_web_view_stop_loading(webView) :
-                webkit_web_view_reload(webView);
+                webkit_web_view_is_loading(web_view) ?
+                webkit_web_view_stop_loading(web_view) :
+                webkit_web_view_reload(web_view);
             }
         );
-    if(uriEntry) [[likely]]
+    if(uri_entry) [[likely]]
     {
-        uriEntry->signal_activate().connect([this](){ entry_uri_load();});
-        if(enterButton) [[likely]]
-            enterButton->signal_clicked().connect([this](){ entry_uri_load();});
+        uri_entry->signal_activate().connect([this](){ entry_uri_load();});
+        if(enter_button) [[likely]]
+            enter_button->signal_clicked().connect([this](){ entry_uri_load();});
     }
     // Menu button not visible as no usage needed for the moment
-    if(menuButton) [[likely]] menuButton->set_visible(false);
+    if(menu_button) [[likely]] menu_button->set_visible(false);
 
-    g_signal_connect(webView, "load-changed", G_CALLBACK(web_view_load_changed), this);
-    webkit_web_view_load_uri(webView, HOME_URL);
+    g_signal_connect(web_view, "load-changed", G_CALLBACK(web_view_load_changed), this);
+    webkit_web_view_load_uri(web_view, HOME_URL);
 
     // Insert elements into Browser Box
     insert_child_at_start(*header);
-    append(*webViewWidget);
+    append(*web_view_widget);
 }
 
 void Browser::on_realize() {
     Gtk::Box::on_realize();
-    statusLabel = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
-    if (!statusLabel) std::cout << "Status label not found" << std::endl;
-    if (statusLabel)
-        statusLabel->set_text("Welcome to the Browser!");
+    status_label = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
+    if (!status_label) std::cout << "Status label not found" << std::endl;
+    if (status_label)
+        status_label->set_text("Welcome to the Browser!");
 }
 
 
@@ -149,11 +149,11 @@ void Browser::web_view_load_changed(WebKitWebView *webView,
     auto browser {static_cast<Browser*>(userData)};
     switch (loadEvent) {
         case WEBKIT_LOAD_STARTED:
-            browser->backButton->set_sensitive(webkit_web_view_can_go_back(webView));
-            browser->forwardButton->set_sensitive(webkit_web_view_can_go_forward(webView));
-            browser->reloadButton->set_icon_name("gtk-stop");
-            browser->uriEntry->set_sensitive(false);
-            browser->enterButton->set_sensitive(false);
+            browser->back_button->set_sensitive(webkit_web_view_can_go_back(webView));
+            browser->forward_button->set_sensitive(webkit_web_view_can_go_forward(webView));
+            browser->reload_button->set_icon_name("gtk-stop");
+            browser->uri_entry->set_sensitive(false);
+            browser->enter_button->set_sensitive(false);
             std::cout << "Load started with provisional URI: " << uri << std::endl;
             break;
 
@@ -166,14 +166,14 @@ void Browser::web_view_load_changed(WebKitWebView *webView,
             break;
 
         case WEBKIT_LOAD_FINISHED:
-            browser->backButton->set_sensitive(webkit_web_view_can_go_back(webView));
-            browser->forwardButton->set_sensitive(webkit_web_view_can_go_forward(webView));
-            browser->reloadButton->set_icon_name("gtk-convert");
-            browser->uriEntry->set_sensitive(true);
-            browser->uriEntry->set_text(uri);
-            browser->enterButton->set_sensitive(true);
-            if ( browser->statusLabel )
-                browser->statusLabel->set_text(static_cast<std::string>("Welcome to the browser! You're in page: ") + webkit_web_view_get_title(webView));
+            browser->back_button->set_sensitive(webkit_web_view_can_go_back(webView));
+            browser->forward_button->set_sensitive(webkit_web_view_can_go_forward(webView));
+            browser->reload_button->set_icon_name("gtk-convert");
+            browser->uri_entry->set_sensitive(true);
+            browser->uri_entry->set_text(uri);
+            browser->enter_button->set_sensitive(true);
+            if ( browser->status_label )
+                browser->status_label->set_text(static_cast<std::string>("Welcome to the browser! You're in page: ") + webkit_web_view_get_title(webView));
             std::cout << "Load finished." << std::endl;
             break;
     }
