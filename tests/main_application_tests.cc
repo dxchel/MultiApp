@@ -20,6 +20,6 @@ TEST_F(MainApplicationTest, MainApplicationStructureTest)
     ASSERT_THAT(notebook, ::testing::NotNull());
     auto foot {dynamic_cast<Gtk::Label *>(notebook->get_next_sibling())};
     EXPECT_THAT(foot, ::testing::NotNull());
-    auto browser {dynamic_cast<Gtk::Box *>(notebook->get_first_child())};
-    ASSERT_THAT(browser, ::testing::NotNull());
+    auto selected {dynamic_cast<Gtk::Box *>(notebook->get_first_child())};
+    ASSERT_THAT(selected, ::testing::NotNull());
 }
