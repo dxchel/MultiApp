@@ -31,27 +31,14 @@ TEST_F(BrowserTest, BrowserStructuralTest)
     ASSERT_THAT(enter_t, ::testing::Eq(enter_button));
     auto menu_t {dynamic_cast<Gtk::MenuButton *>(enter_t->get_next_sibling())};
     EXPECT_THAT(menu_t, ::testing::Eq(menu_button));
+    auto web_view_t {header_t->get_next_sibling()};
+    EXPECT_THAT(web_view_t, ::testing::NotNull());
 }
 
 TEST_F(BrowserTest, BrowserFunctionalTest)
 {
-    // TODO: Need to check how to simulate button clicks instead of calling functions manually
-    // TODO: Need to check how to make webView load pages without showing anything
-    /*if(browser->backButton->get_sensitive())
-    {
-        std::cerr << "Back button not initialized as disabled." << std::endl;
-        return BrowserAppError::back_error;
-    }
-    if(browser->forwardButton->get_sensitive())
-    {
-        std::cerr << "Back button not initialized as disabled." << std::endl;
-        return BrowserAppError::forward_error;
-    }
-    if(Browser::get_uri_root(webkit_web_view_get_uri(browser->webView)) != "github.com/dxchel/MultiApp")
-    {
-        std::cerr << "WebView not initialized to https://www.github.com/dxchel/MultiApp." << std::endl;
-        return BrowserAppError::webview_error;
-    }*/
+    ASSERT_THAT(Browser::get_uri_root(webkit_web_view_get_uri(browser->web_view)), ::testing::Eq("dxchel.github.io/portfolio"));
+
     std::vector<std::string> uris_to_load
     {
         "google.com/",
