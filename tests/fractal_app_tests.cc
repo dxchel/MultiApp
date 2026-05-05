@@ -1,12 +1,10 @@
-#include "gtkmm/dropdown.h"
 #include "include/tests.hpp"
 
-#include "gtest/gtest.h"
 #include <random>
+#include <unordered_map>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <unordered_map>
 
 
 FractalTest::FractalTest() : fractal (Gtk::manage(new FractalBox())),
@@ -109,4 +107,20 @@ TEST_F(FractalTest, FractalFunctionalTest)
         fractal_area->set_selection(options[selection_t]);
         ASSERT_THAT(fractal_area->selection, ::testing::Eq(options[selection_t]));
     }
+    fractal_area->cx += 3;
+    fractal_area->cy += 2;
+    fractal_area->range += 1;
+    fractal_area->reset();
+    ASSERT_THAT(fractal_area->cx, ::testing::Eq(-0.5));
+    ASSERT_THAT(fractal_area->cy, ::testing::Eq(0));
+    ASSERT_THAT(fractal_area->range, ::testing::Eq(3.5));
+    uint8_t r{1}, g{2}, b{3};
+    fractal_area->iter_to_rgb(1024, 1024, r, g, b);
+    ASSERT_THAT(r, ::testing::Eq(0));
+    ASSERT_THAT(g, ::testing::Eq(0));
+    ASSERT_THAT(b, ::testing::Eq(0));
+    fractal_area->iter_to_rgb(0, 1024, r, g, b);
+    ASSERT_THAT(r, ::testing::Eq(0));
+    ASSERT_THAT(g, ::testing::Eq(0));
+    ASSERT_THAT(b, ::testing::Eq(0));
 }
