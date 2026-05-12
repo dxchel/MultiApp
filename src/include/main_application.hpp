@@ -13,6 +13,7 @@
 class MainApplication : public Gtk::Application
 {
     friend class MainApplicationTest;
+    friend class MainApplicationTest_MainApplicationStructureTest_Test;
 
     Gtk::ApplicationWindow *main_window{};
 

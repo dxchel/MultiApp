@@ -26,8 +26,6 @@ protected:
      * */
     MainApplicationTest();
 
-    Gtk::ApplicationWindow* create_window();
-
     Glib::RefPtr<MainApplication> main_app;
 };
 
