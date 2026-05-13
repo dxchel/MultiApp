@@ -30,7 +30,7 @@
         <property name="input-purpose">digits</property>
         <property name="placeholder-text">Enter URL or search...</property>
         <property name="primary-icon-name">internet-amarok</property>
-        <property name="text">1234</property>
+        <property name="text">9000</property>
       </object>
     </child>
     <child>
