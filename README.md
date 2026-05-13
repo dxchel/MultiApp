@@ -37,7 +37,8 @@ MultiApp/            // Core application files
 
 - 🚧 Simple internet browser
 - 🚧 Fractal creator
-- ❌ Local chat app
+- 🚧 Local chat app
+- ❌ Maze generator/player/solver
 - 🔬 Other goodies in the future
 
 ## 🏗️ Requirements
