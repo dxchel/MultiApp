@@ -1,6 +1,7 @@
 #include "include/main_application.hpp"
 #include "include/browser_app.hpp"
 #include "include/fractal_app.hpp"
+#include "include/chat_app.hpp"
 
 #include <iostream>
 
@@ -70,6 +71,10 @@ Gtk::ApplicationWindow* MainApplication::create_window()
             break;
         case 1:
             selected_app = Gtk::manage(new Browser());
+            app->append(*selected_app);
+            break;
+        case 2:
+            selected_app = Gtk::manage(new Chat());
             app->append(*selected_app);
             break;
         }
