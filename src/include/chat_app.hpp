@@ -1,14 +1,18 @@
 #ifndef _CHAT_APP_
 #define _CHAT_APP_
 
+#include "gtkmm/textview.h"
+#include <cstdint>
 #include <gtkmm.h>
 
 #include <iostream>
 #include <string>
+#include <map>
 #include <cstring>
 #include <stdexcept>
 #include <csignal>
 #include <cerrno>
+#include <thread>
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -17,6 +21,7 @@
     using ssize_t = int;
     using socklen = int;
     using socket_t = SOCKET;
+    inline void close_socket(SOCKET s) { closesocket(s); }
     inline std::string last_error() { return std::to_string(WSAGetLastError()); }
 #else
     #include <sys/socket.h>
@@ -27,14 +32,12 @@
     #define SOCKET_ERROR (-1)
     using socklen = socklen_t;
     using socket_t = int;
+    inline void close_socket(int s) { ::close(s); }
     inline std::string last_error() { return std::strerror(errno); }
 #endif
 
 static constexpr const char *DEFAULT_PORT {"9000"};
-static constexpr const int BACKLOG {10};
 static constexpr const char *LOCALHOST {"127.0.0.1"};
-
-static std::atomic<bool> g_running{true};
 
 
 #ifdef _WIN32
@@ -47,6 +50,32 @@ struct WinsockInit {
     ~WinsockInit() { WSACleanup(); }
 };
 #endif
+
+
+class Socket
+{
+    socket_t socket{INVALID_SOCKET};
+
+    // Non-copyable
+    Socket(const Socket&) = delete;
+    Socket& operator=(const Socket&) = delete;
+
+    // Moveable
+    Socket(Socket&&) noexcept;
+
+public:
+    Socket();
+
+    operator socket_t() const;
+    Socket& operator=(Socket&&) noexcept;
+
+    bool valid() const;
+    bool connect(const std::string&, uint16_t);
+    bool send_message(const std::string&) const;
+    void close();
+
+    ~Socket();
+};
 
 
 /**
@@ -66,7 +95,8 @@ class Chat : public Gtk::Box
 
     Gtk::Label *status_label{};
 
-    socket_t socket{};
+    std::atomic<bool> running{true};
+    std::deque<Socket> sockets{};
 
     /**
      * @brief Get Main Application status label.
@@ -77,12 +107,14 @@ class Chat : public Gtk::Box
     void on_realize() override;
 
     inline void connect();
-    inline std::string receive_line() const;
+    inline void receive_line(socket_t, std::string&);
+    inline void broadcast_message(const std::string&);
+    void receiver_thread(socket_t);
 
 #ifdef _WIN32
-    inline void close_socket();
+    inline void close_sockets();
 #else
-    inline void close_socket();
+    inline void close_sockets();
 
     ~Chat();
 #endif
@@ -95,22 +127,6 @@ public:
      * Checks for file issues, gets Widgets and connects needed signals.
      */
     Chat();
-
-    inline void send_message();
 };
-
-
-/// Send an entire buffer, retrying on partial sends.
-inline bool send_all(socket_t fd, const std::string& msg) {
-    const char*  ptr  = msg.c_str();
-    std::size_t  left = msg.size();
-    while (left > 0) {
-        ssize_t sent = ::send(fd, ptr, static_cast<int>(left), 0);
-        if (sent <= 0) return false;
-        ptr  += sent;
-        left -= static_cast<std::size_t>(sent);
-    }
-    return true;
-}
 
 #endif
