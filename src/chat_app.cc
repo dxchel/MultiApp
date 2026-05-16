@@ -1,105 +1,14 @@
 #include "include/chat_app.hpp"
 #include "gtkmm/enums.h"
-#include "gtkmm/object.h"
-#include "gtkmm/scrolledwindow.h"
-#include "gtkmm/textview.h"
 
+#include <algorithm>
+#include <asio/io_context.hpp>
 #include <cstddef>
-#include <cstdint>
 #include <iostream>
 
 #include <gtkmm.h>
 #include <string>
-#include <webkit/webkit.h>
-
-
-Socket::Socket() {}
-
-// Moveable
-Socket::Socket(Socket&& target) noexcept : socket{target.socket} { target.socket = INVALID_SOCKET; }
-
-Socket::operator socket_t() const { return socket; }
-Socket& Socket::operator=(Socket&& target) noexcept
-{
-    if (this != &target)
-    {
-        close();
-        socket = target.socket;
-        target.socket = INVALID_SOCKET;
-    }
-    return *this;
-}
-
-bool Socket::valid() const { return socket != INVALID_SOCKET; }
-void Socket::close()
-{
-    if (socket != INVALID_SOCKET) {
-        close_socket(socket);
-        std::cout << "Closed socket: " << socket << std::endl;
-        socket = INVALID_SOCKET;
-    }
-}
-
-bool Socket::connect(const std::string &ip, uint16_t port)
-{
-    std::string host {ip.compare("localhost") ? ip : LOCALHOST};
-
-#ifdef _WIN32
-    WinsockInit wsa_init;
-#endif
-
-    socket = ::socket(AF_INET, SOCK_STREAM, 0);
-
-    if (socket == INVALID_SOCKET)
-    {
-        std::cerr << "[error] socket(): " + last_error() << std::endl;
-        return false;
-    }
-
-    sockaddr_in addr{};
-    addr.sin_family = AF_INET;
-    addr.sin_port   = htons(port);
-
-    int rc {::inet_pton(AF_INET, host.c_str(), &addr.sin_addr)};
-    if (!rc)
-    {
-        std::cerr << "[error] Invalid address: " + host << std::endl;
-        return false;
-    }
-    if (rc < 0) {
-        std::cerr << "[error] inet_pton(): " + last_error() << std::endl;
-        return false;
-    }
-
-    std::cout << "Connecting to " << host << ":" << port << "..." << std::endl;
-    if (::connect(socket, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR) {
-        std::cerr << "[error] connect(): " << last_error() << "\nIs the server running?\n";
-        return false;
-    }
-    return true;
-}
-
-bool Socket::send_message(const std::string& message) const
-{
-    const char *ptr {message.c_str()};
-    std::size_t left {message.size()};
-    std::cout << "Sending: " << message << " on " << socket << std::endl;
-    while (left > 0) {
-        ssize_t sent = ::send(socket, ptr, static_cast<int>(left), 0);
-        if (sent <= 0)
-        {
-            std::cerr << std::endl << "[error] send failed: " << last_error() << std::endl;
-            std::cerr << "Socket: " << socket << std::endl;
-            return false;
-        }
-        ptr  += sent;
-        left -= static_cast<std::size_t>(sent);
-    }
-    return true;
-}
-
-
-Socket::~Socket() { close(); }
+#include <thread>
 
 
 Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
@@ -147,29 +56,31 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
         home_button->signal_clicked().connect
         ( [this](){ ip_entry->set_text(LOCALHOST); port_entry->set_text(DEFAULT_PORT); } );
     if(ip_entry) [[likely]]
-        ip_entry->signal_activate().connect([this](){ connect(); });
+        ip_entry->signal_activate().connect([this](){ conection_check(); });
     if(port_entry) [[likely]]
-        port_entry->signal_activate().connect([this](){ connect(); });
+        port_entry->signal_activate().connect([this](){ conection_check(); });
     if(connect_button) [[likely]]
-        connect_button->signal_clicked().connect([this](){ connect(); });
+        connect_button->signal_clicked().connect([this](){ conection_check(); });
 
     if(message_entry) [[likely]]
-        message_entry->signal_activate().connect([this]()
-        {
-            if ( !message_entry->get_text_length() ) return;
-            broadcast_message(message_entry->get_text() + "\n");
-        });
+        message_entry->signal_activate().connect( [this] () { message_buffer(); });
     if(message_button) [[likely]]
-        message_button->signal_clicked().connect([this]()
-        {
-            if ( !message_entry->get_text_length() ) return;
-            broadcast_message(message_entry->get_text() + "\n");
-        });
+        message_button->signal_clicked().connect( [this] () { message_buffer(); });
 
     // Insert elements into Browser Box
     insert_child_at_start(*header);
     append(*chat_scrolled);
     append(*footer_box);
+}
+
+Chat::~Chat() noexcept
+{
+    if ( !ioc.stopped() ) ioc.stop();
+    if ( ioc_thread.joinable() ) ioc_thread.join();
+    for ( auto &socket : sockets )
+        if ( socket.is_open() )
+            socket.close();
+    std::cout << "Goodbye from Chat!" << std::endl;
 }
 
 void Chat::on_realize()
@@ -181,11 +92,94 @@ void Chat::on_realize()
         status_label->set_text("Welcome to the LAN Chat!");
 }
 
-inline void Chat::connect()
+awaitable<void> Chat::sender(tcp::socket& socket) {
+    try {
+        while (true) {
+            // Wait until there's something to send
+            while (send_buf.empty()) {
+                asio::error_code ec;
+                co_await send_timer->async_wait(
+                    asio::redirect_error(use_awaitable, ec));
+                if (ec && ec != asio::error::operation_aborted) co_return;
+            }
+
+            std::string data;
+            std::swap(data, send_buf);
+
+            co_await asio::async_write(socket, asio::buffer(data), use_awaitable);
+
+            // Reset timer so we wait again next iteration
+            send_timer->expires_at(asio::steady_timer::time_point::min());
+        }
+    } catch (const std::exception&) {
+        std::cout << std::endl << "[disconnected sender from server due to exception]" << std::endl;
+    }
+
+    if ( socket.is_open() ) socket.close();
+    if ( !ioc.stopped() ) ioc.stop();
+}
+
+awaitable<void> Chat::receiver(tcp::socket& socket) {
+    try {
+        asio::streambuf buf;
+
+        while (true) {
+            std::size_t n = co_await asio::async_read_until(
+                socket, buf, '\n', use_awaitable);
+
+            while ( !posted )
+            {
+                asio::error_code ec;
+                co_await send_timer->async_wait(
+                    asio::redirect_error(use_awaitable, ec));
+                if (ec && ec != asio::error::operation_aborted) co_return;
+            }
+
+            Glib::ustring line(
+                asio::buffers_begin(buf.data()),
+                asio::buffers_begin(buf.data()) + static_cast<std::ptrdiff_t>(n));
+            buf.consume(n);
+
+            // Strip \r\n
+            while (!line.empty() && (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r'))
+                line.erase(line.size() - 1);
+            line.make_valid();
+
+            std::cout << line << std::endl << std::flush;
+
+            // @TODO FIX first bubbles take the whole space
+            post_to_gtk([this, line = std::move(line)]()
+            {
+                auto bubble {Gtk::manage(new Gtk::TextView())};
+                bubble->set_hexpand(true);
+                bubble->set_vexpand(false);
+                bubble->set_editable(false);
+                bubble->set_cursor_visible(false);
+                bubble->set_justification(Gtk::Justification::LEFT);
+                bubble->set_wrap_mode(Gtk::WrapMode::WORD_CHAR);
+                bubble->get_buffer()->set_text(line);
+                chat_box->append(*bubble);
+                posted = true;
+            });
+        }
+    } catch (const std::exception&) {
+        std::cout << std::endl << "[disconnected receiver from server due to exception]" << std::endl;
+    }
+
+    if ( socket.is_open() ) socket.close();
+    if ( !ioc.stopped() ) ioc.stop();
+}
+
+inline void Chat::conection_check()
 {
+    // Disconnect if connected
+    // @TODO FIX on disconnect it needs two clicks to use again
     if (!connect_button->get_label().compare("Disconnect"))
     {
-        close_sockets();
+        if ( !ioc.stopped() ) ioc.stop();
+        if ( ioc_thread.joinable() ) ioc_thread.join();
+        sockets.clear();
+        std::cout << "\n[disconnected from server due to user request]\n";
 
         connect_button->set_label("Connect");
         footer_box->set_visible(false);
@@ -194,17 +188,51 @@ inline void Chat::connect()
         return;
     }
 
-    if ( static_cast<unsigned>(std::atoi(port_entry->get_text().c_str())) > 65535 )
+    // Else connect as client
+    auto port { static_cast<unsigned>(std::atoi(port_entry->get_text().c_str())) };
+    if ( port > 65535 )
     {
         std::cerr << "Port out of bounds (0-65535)" << std::endl;
         status_label->set_label("Something went wrong when trying to connect, check cerr");
         return;
     }
+    auto host { ip_entry->get_text().lowercase().compare("localhost") ? ip_entry->get_text().c_str() : LOCALHOST };
 
-    sockets.emplace_back();
-    if ( !sockets[0].connect(ip_entry->get_text().lowercase(), std::atoi(port_entry->get_text().c_str())))
-    {
-        status_label->set_label("Something went wrong when trying to connect, check cerr");
+    try {
+        if ( !send_timer ) send_timer = std::make_unique<asio::steady_timer>(ioc);
+        send_timer->expires_at(asio::steady_timer::time_point::min());
+        tcp::resolver resolver(ioc);
+
+        sockets.emplace_back(ioc);
+
+        std::cout << "Connecting to " << host << ":" << port << "...\n";
+
+        // Resolve and connect synchronously before starting the event loop —
+        // simplifies startup error handling significantly
+        asio::error_code ec;
+        auto endpoints = resolver.resolve(host, std::to_string(port), ec);
+        if (ec) {
+            std::cerr << "[error] resolve(): " << ec.message()
+                      << std::endl << "Is the server running?" << std::endl;
+            return;
+        }
+
+        asio::connect(sockets[0], endpoints, ec);
+        if (ec) {
+            std::cerr << "[error] connect(): " << ec.message()
+                      << std::endl << "Is the server running?" << std::endl;
+            return;
+        }
+
+        ioc.restart();
+        asio::co_spawn(ioc, receiver(sockets[0]), asio::detached);
+        asio::co_spawn(ioc, sender(sockets[0]), asio::detached);
+
+        // Run the event loop until ioc.stop() is called
+        ioc_thread = std::thread([this](){ ioc.run(); });
+
+    } catch (const std::exception& e) {
+        std::cerr << "[fatal] " << e.what() << std::endl;
         return;
     }
 
@@ -216,50 +244,17 @@ inline void Chat::connect()
     return;
 }
 
-inline void Chat::broadcast_message(const std::string &message)
+void Chat::message_buffer ()
 {
-    for ( auto &socket : sockets ) socket.send_message(message);
+    if ( !message_entry->get_text_length() ) return;
+    send_buf.append((message_entry->get_text() + "\n"));
+    send_timer->cancel(); // wake the sender coroutine
     message_entry->delete_text(0, -1);
-}
-/*
-inline void Chat::receive_line(socket_t sock, std::string &received)
-{
-    received.clear();
-    char ch = 0;
-    while (running) {
-        ssize_t n = ::recv(sock, &ch, 1, 0);
-        if (n <= 0) running = false;
-        if (ch == '\n') break;
-        if (ch != '\r') received += ch;
-    }
-    return;
-}
+};
 
-void Chat::receiver_thread(socket_t sock)
-{
-    std::string message{};
-    while (running) {
-        receive_line(sock, message);
-        if ( !message.empty() )
-        {
-            auto bubble = Gtk::manage(new Gtk::TextView());
-            bubble->set_hexpand(true);
-            bubble->set_editable(false);
-            bubble->set_justification(Gtk::Justification::LEFT);
-            bubble->get_buffer()->set_text(message);
-            chat_box->append(*bubble);
-            std::cout << message;
-        }
-    }
-    ::close(sock);
+void Chat::post_to_gtk(std::function<void()> fn) {
+    // Schedules fn to run on the GTK main loop thread
+    Glib::signal_idle().connect_once(std::move(fn));
+    posted = false;
 }
-*/
-inline void Chat::close_sockets()
-{
-    running = false;
-    sockets.clear();
-    std::cout << "Disconnected, bye!" << std::endl;
-}
-
-Chat::~Chat() { running = false; for ( auto &socket : sockets ) socket.close(); }
 
