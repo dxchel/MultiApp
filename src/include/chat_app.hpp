@@ -5,9 +5,6 @@
 #include <gtkmm.h>
 
 #include <asio.hpp>
-#include <asio/co_spawn.hpp>
-#include <asio/detached.hpp>
-#include <asio/use_awaitable.hpp>
 
 #include <memory>
 #include <string>
@@ -18,6 +15,31 @@ using asio::use_awaitable;
 
 static constexpr const char *DEFAULT_PORT {"9000"};
 static constexpr const char *LOCALHOST {"127.0.0.1"};
+
+
+class Session
+{
+    std::unique_ptr<asio::steady_timer> send_timer{};
+    std::string send_buf{}, host{};
+    std::deque<tcp::socket> sockets{};
+    asio::io_context ioc{};
+    std::thread ioc_thread{};
+    unsigned port{};
+    std::function<void(std::string&)> poster{};
+
+public:
+    std::atomic<bool> posted{true};
+    Session(const std::string&, unsigned);
+    ~Session() noexcept;
+
+
+    awaitable<void> sender(tcp::socket& socket);
+    awaitable<void> receiver(tcp::socket& socket);
+
+    void set_poster(std::function<void(std::string&)>);
+    void connect();
+    void add_to_buffer(std::string);
+};
 
 
 /**
@@ -37,12 +59,7 @@ class Chat : public Gtk::Box
 
     Gtk::Label *status_label{};
 
-    std::unique_ptr<asio::steady_timer> send_timer{};
-    std::string send_buf{};
-    std::deque<tcp::socket> sockets{};
-    asio::io_context ioc;
-    std::thread ioc_thread;
-    std::atomic<bool> posted{true};
+    std::unique_ptr<Session> session{};
 
     /**
      * @brief Get Main Application status label.
@@ -52,13 +69,9 @@ class Chat : public Gtk::Box
      */
     void on_realize() override;
 
-    inline void conection_check();
     inline void message_buffer();
-    awaitable<void> sender(tcp::socket& socket);
-    awaitable<void> receiver(tcp::socket& socket);
-    // Call this from anywhere on the Asio thread to safely update GTK
-    void post_to_gtk(std::function<void()>);
 
+    inline void session_connection();
 
 public:
     /**
@@ -69,7 +82,9 @@ public:
      */
     Chat();
 
-    ~Chat() noexcept;
+    // Call this from anywhere on the Asio thread to safely update GTK
+    //void post_to_gtk();
+
 };
 
 #endif
