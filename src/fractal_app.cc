@@ -198,10 +198,13 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
             [this](){ fractal_area->reset(); }
         );
     if(save_button) [[likely]]
+    {
         save_button->signal_clicked().connect
         (
             [](){ std::cout << "Save button pressed!" << std::endl;}
         );
+        save_button->set_visible(false);  //Set visible false until new way of creating a dialog is available
+    }
     if(fractal_dropdown) [[likely]]
         fractal_dropdown->property_selected().signal_changed().connect
         (
