@@ -26,6 +26,7 @@ class Session
     std::thread ioc_thread{};
     unsigned port{};
     std::function<void(std::string&)> poster{};
+    std::function<void(void)> disconnecter{};
 
 public:
     std::atomic<bool> posted{true};
@@ -37,6 +38,7 @@ public:
     awaitable<void> receiver(tcp::socket& socket);
 
     void set_poster(std::function<void(std::string&)>);
+    void set_disconnecter(std::function<void(void)>);
     void connect();
     void add_to_buffer(std::string);
 };

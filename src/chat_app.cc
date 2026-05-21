@@ -101,8 +101,9 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
             // Strip \r\n
             while (!line.empty() && (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r'))
                 line.erase(line.size() - 1);
+            if ( !line.size() ) continue;
             line.make_valid();
-            // Wait until there's something to send
+            // Wait until GTK finished posting last messages
             while (!posted)
             {
                 asio::error_code ec;
@@ -110,7 +111,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
                     asio::redirect_error(use_awaitable, ec));
                 if (ec && ec != asio::error::operation_aborted) co_return;
             }
-
+            posted = false;
             std::cout << line << std::endl;
 
             if ( poster ) Glib::signal_idle().connect_once([this, line = std::move(line)]()
@@ -125,20 +126,28 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
 
     if ( socket.is_open() ) socket.close();
     if ( !ioc.stopped() ) ioc.stop();
+    Glib::signal_idle().connect_once([this]()
+        { disconnecter(); });
 }
 
 void Session::add_to_buffer(std::string message)
 {
-    send_buf.append(std::move(message));
+    send_buf.append(message + "\n");
     send_timer->cancel();
     return;
 }
 
 void Session::set_poster(std::function<void(std::string&)> message_poster)
-{
-    poster = std::move(message_poster);
-}
+    {
+        poster = [this, message_poster] (std::string &message)
+        {
+            std::move(message_poster)(message);
+            posted = true;
+        };
+    }
 
+void Session::set_disconnecter(std::function<void(void)> new_disconnecter)
+    { disconnecter = std::move(new_disconnecter); }
 
 
 Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
@@ -215,7 +224,6 @@ void Chat::on_realize()
 inline void Chat::session_connection()
 {
     // Disconnect if connected
-    // @TODO FIX on disconnect it needs two clicks to use again
     if (!connect_button->get_label().compare("Disconnect"))
     {
         session = nullptr;
@@ -225,6 +233,7 @@ inline void Chat::session_connection()
         footer_box->set_visible(false);
         ip_entry->set_sensitive(true);
         port_entry->set_sensitive(true);
+        status_label->set_label("Disonnected from server!");
         return;
     }
 
@@ -235,20 +244,27 @@ inline void Chat::session_connection()
     try {
         session = std::make_unique<Session>(host, port);
         session->connect();
+        session->set_disconnecter([this]() { session_connection(); });
         session->set_poster([this](std::string& message)
         {
+            auto bubble {Gtk::manage(new Gtk::TextView())};
+            if ( message.compare(0, 5, "(you)") )
             {
-                auto bubble {Gtk::manage(new Gtk::TextView())};
-                bubble->set_hexpand(true);
-                bubble->set_vexpand(false);
-                bubble->set_editable(false);
-                bubble->set_cursor_visible(false);
                 bubble->set_justification(Gtk::Justification::LEFT);
-                bubble->set_wrap_mode(Gtk::WrapMode::WORD_CHAR);
-                bubble->get_buffer()->set_text(message);
-                chat_box->append(*bubble);
-                session->posted = true;
+                bubble->set_margin_end(100);
+            } else
+            {
+                bubble->set_justification(Gtk::Justification::RIGHT);
+                bubble->set_margin_start(100);
             }
+            bubble->get_buffer()->set_text(std::move(message));
+            bubble->set_hexpand(true);
+            bubble->set_vexpand(false);
+            bubble->set_editable(false);
+            bubble->set_cursor_visible(false);
+            bubble->set_wrap_mode(Gtk::WrapMode::WORD_CHAR);
+            bubble->set_margin(7);
+            chat_box->append(*bubble);
         });
     } catch (const std::exception& e) {
         std::cerr << "[fatal] while creating session " << e.what() << std::endl;
@@ -262,13 +278,14 @@ inline void Chat::session_connection()
     port_entry->set_sensitive(false);
     footer_box->set_visible(true);
     message_entry->grab_focus();
+    status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
     return;
 }
 
 inline void Chat::message_buffer ()
 {
     if ( !message_entry->get_text_length() ) return;
-    session->add_to_buffer(message_entry->get_text() + "\n");
+    session->add_to_buffer(message_entry->get_text());
     message_entry->delete_text(0, -1);
 };
 
