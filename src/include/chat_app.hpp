@@ -29,7 +29,6 @@ class Session
     std::function<void(void)> disconnecter{};
 
 public:
-    std::atomic<bool> posted{true};
     Session(const std::string&, unsigned);
     ~Session() noexcept;
 

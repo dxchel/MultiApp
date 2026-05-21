@@ -8,7 +8,7 @@
 #include <gtkmm.h>
 
 MainApplication::MainApplication() :
-    Gtk::Application("org.xchel.multiapp", Gio::Application::Flags::HANDLES_OPEN) {}
+    Gtk::Application("org.xchel.multiapp", Gio::Application::Flags::HANDLES_OPEN | Gio::Application::Flags::NON_UNIQUE) {}
 
 Glib::RefPtr<MainApplication> MainApplication::create()
 {

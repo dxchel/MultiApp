@@ -104,14 +104,6 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
             if ( !line.size() ) continue;
             line.make_valid();
             // Wait until GTK finished posting last messages
-            while (!posted)
-            {
-                asio::error_code ec;
-                co_await send_timer->async_wait(
-                    asio::redirect_error(use_awaitable, ec));
-                if (ec && ec != asio::error::operation_aborted) co_return;
-            }
-            posted = false;
             std::cout << line << std::endl;
 
             if ( poster ) Glib::signal_idle().connect_once([this, line = std::move(line)]()
@@ -138,13 +130,7 @@ void Session::add_to_buffer(std::string message)
 }
 
 void Session::set_poster(std::function<void(std::string&)> message_poster)
-    {
-        poster = [this, message_poster] (std::string &message)
-        {
-            std::move(message_poster)(message);
-            posted = true;
-        };
-    }
+    { poster = std::move(message_poster); }
 
 void Session::set_disconnecter(std::function<void(void)> new_disconnecter)
     { disconnecter = std::move(new_disconnecter); }
