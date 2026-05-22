@@ -45,7 +45,9 @@
     <property name="vexpand">True</property>
     <child>
       <object class="GtkBox" id="chat_box">
+        <property name="hexpand">True</property>
         <property name="orientation">vertical</property>
+        <property name="vexpand">True</property>
       </object>
     </child>
   </object>
