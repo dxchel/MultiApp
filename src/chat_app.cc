@@ -242,22 +242,21 @@ inline void Chat::session_connection()
         session->set_disconnecter([this]() { session_connection(); });
         session->set_poster([this](std::string& message)
         {
-            auto bubble {Gtk::manage(new Gtk::TextView())};
+            auto bubble {Gtk::manage(new Gtk::Label())};
             if ( message.compare(0, 5, "(you)") )
             {
-                bubble->set_justification(Gtk::Justification::LEFT);
+                bubble->set_xalign(0.0);
                 bubble->set_margin_end(100);
             } else
             {
-                bubble->set_justification(Gtk::Justification::RIGHT);
+                bubble->set_xalign(1.0);
                 bubble->set_margin_start(100);
             }
-            bubble->get_buffer()->set_text(std::move(message));
+            bubble->set_text(std::move(message));
             bubble->set_hexpand(true);
             bubble->set_vexpand(false);
-            bubble->set_editable(false);
-            bubble->set_cursor_visible(false);
-            bubble->set_wrap_mode(Gtk::WrapMode::WORD_CHAR);
+            bubble->set_wrap(true);
+            bubble->set_wrap_mode(Pango::WrapMode::WORD_CHAR);
             bubble->set_margin(7);
             chat_box->append(*bubble);
 
