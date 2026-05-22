@@ -264,11 +264,6 @@ inline void Chat::session_connection()
             // Scroll to bottom and queue resize to ensure new message is shown
             auto adj = chat_scrolled->get_vadjustment();
             adj->set_value(adj->get_upper());
-
-            // Force a full resize cycle like a manual resize would
-            auto win = dynamic_cast<Gtk::Window*>(get_root());
-            win->queue_resize();
-
         });
     } catch (const std::exception& e) {
         std::cerr << "[fatal] while creating session " << e.what() << std::endl;
