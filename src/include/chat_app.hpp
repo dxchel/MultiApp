@@ -24,6 +24,9 @@ class Session
     std::deque<tcp::socket> sockets{};
     asio::io_context ioc{};
     std::thread ioc_thread{};
+    Glib::Dispatcher dispatch;
+    std::deque<std::string> message_queue;
+    std::mutex queue_mutex;
     unsigned port{};
     std::function<void(std::string&)> poster{};
     std::function<void(void)> disconnecter{};
@@ -57,6 +60,7 @@ class Chat : public Gtk::Box
     Gtk::Button *home_button{}, *connect_button{}, *message_button{};
     Gtk::Entry *ip_entry{}, *port_entry{}, *message_entry{};
     Gtk::Box *chat_box{}, *footer_box{};
+    Gtk::ScrolledWindow *chat_scrolled{};
 
     Gtk::Label *status_label{};
 

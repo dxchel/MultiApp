@@ -51,6 +51,17 @@ void Session::connect()
         throw std::runtime_error("Failed to connect to server");
     }
 
+    dispatch.connect([this]() {
+        std::lock_guard<std::mutex> lock(queue_mutex);
+        while (!message_queue.empty()) {
+            std::string message{std::move(message_queue.front())};
+            message_queue.pop_front();
+
+            std::cout << message << std::endl;
+            if (poster) poster(message);
+        }
+    });
+
     asio::co_spawn(ioc, receiver(sockets[0]), asio::detached);
     asio::co_spawn(ioc, sender(sockets[0]), asio::detached);
 
@@ -103,14 +114,12 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
                 line.erase(line.size() - 1);
             if ( !line.size() ) continue;
             line.make_valid();
-            // Wait until GTK finished posting last messages
-            std::cout << line << std::endl;
 
-            if ( poster ) Glib::signal_idle().connect_once([this, line = std::move(line)]()
             {
-                std::string message{line.c_str()};
-                poster(message);
-            });
+                std::lock_guard<std::mutex> lock(queue_mutex);
+                message_queue.push_back(std::string(line.c_str()));
+            }
+            dispatch.emit();
         }
     } catch (const std::exception&) {
         std::cout << std::endl << "[disconnected receiver from server due to exception]" << std::endl;
@@ -118,8 +127,8 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
 
     if ( socket.is_open() ) socket.close();
     if ( !ioc.stopped() ) ioc.stop();
-    Glib::signal_idle().connect_once([this]()
-        { disconnecter(); });
+    dispatch.connect(disconnecter);
+    dispatch.emit();
 }
 
 void Session::add_to_buffer(std::string message)
@@ -172,7 +181,7 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
     port_entry = ref_builder->get_widget<Gtk::Entry>("port_entry");
     message_entry = ref_builder->get_widget<Gtk::Entry>("message_entry");
 
-    auto chat_scrolled {Gtk::manage(ref_builder->get_widget<Gtk::ScrolledWindow>("chat_scrolled"))};
+    chat_scrolled = Gtk::manage(ref_builder->get_widget<Gtk::ScrolledWindow>("chat_scrolled"));
     chat_box = Gtk::manage(ref_builder->get_widget<Gtk::Box>("chat_box"));
     footer_box = Gtk::manage(ref_builder->get_widget<Gtk::Box>("footer_box"));
 
@@ -251,6 +260,15 @@ inline void Chat::session_connection()
             bubble->set_wrap_mode(Gtk::WrapMode::WORD_CHAR);
             bubble->set_margin(7);
             chat_box->append(*bubble);
+
+            // Scroll to bottom and queue resize to ensure new message is shown
+            auto adj = chat_scrolled->get_vadjustment();
+            adj->set_value(adj->get_upper());
+
+            // Force a full resize cycle like a manual resize would
+            auto win = dynamic_cast<Gtk::Window*>(get_root());
+            win->queue_resize();
+
         });
     } catch (const std::exception& e) {
         std::cerr << "[fatal] while creating session " << e.what() << std::endl;
@@ -274,4 +292,3 @@ inline void Chat::message_buffer ()
     session->add_to_buffer(message_entry->get_text());
     message_entry->delete_text(0, -1);
 };
-
