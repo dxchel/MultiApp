@@ -30,7 +30,7 @@
         <property name="input-purpose">digits</property>
         <property name="placeholder-text">Enter URL or search...</property>
         <property name="primary-icon-name">internet-amarok</property>
-        <property name="text">9000</property>
+        <property name="text">1234</property>
       </object>
     </child>
     <child>
@@ -56,7 +56,7 @@
     <child>
       <object class="GtkEntry" id="message_entry">
         <property name="hexpand">True</property>
-        <property name="max-length">1024</property>
+        <property name="max-length">2048</property>
       </object>
     </child>
     <child>
