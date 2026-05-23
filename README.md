@@ -47,11 +47,13 @@ In Arch based OS:
 
 - gtkmm-4.0
 - webkitgtk-6.0
+- asio
 
 In Ubuntu/Debian based OS:
 
 - libgtkmm-4.0-dev
 - libwebkitgtk-6.0-dev
+- libasio-dev
 
 ## 🔨 Build and run
 
