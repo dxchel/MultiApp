@@ -6,7 +6,6 @@
 
 #include <asio.hpp>
 
-#include <memory>
 #include <string>
 
 using asio::ip::tcp;
@@ -17,31 +16,86 @@ static constexpr const char *DEFAULT_PORT {"9000"};
 static constexpr const char *LOCALHOST {"127.0.0.1"};
 
 
+/**
+ * @brief Session class containing everything needed to open an async client session.
+ *
+ * Uses a string buffer for sending, appends received messages
+ * to a deque and runs asio in a different thread for the app to run other things.
+ * 
+ * It has a poster and disconnecter function so it can interact with GUI.
+ */
 class Session
 {
-    std::unique_ptr<asio::steady_timer> send_timer{};
     std::string send_buf{}, host{};
+    unsigned port{};
+    std::deque<std::string> message_queue;
+
     std::deque<tcp::socket> sockets{};
+
     asio::io_context ioc{};
+    std::unique_ptr<asio::steady_timer> send_timer{};
+    std::mutex queue_mutex;
     std::thread ioc_thread{};
     Glib::Dispatcher dispatch;
-    std::deque<std::string> message_queue;
-    std::mutex queue_mutex;
-    unsigned port{};
+
     std::function<void(std::string&)> poster{};
     std::function<void(void)> disconnecter{};
 
 public:
+    /**
+     * @brief Connects the session as client and starts the asio thread.
+     * 
+     * @throws out_of_range if the port is out of range.
+     */
     Session(const std::string&, unsigned);
+
+    /* Stops asio io context, joins asio thread and deletes sockets. */
     ~Session() noexcept;
 
 
+    /**
+     * @brief Receiver function to run so the session sends data.
+     *
+     * @param[in] socket: Socket connection to send data to.
+     */
     awaitable<void> sender(tcp::socket& socket);
+
+    /**
+     * @brief Receiver function to run so the session awaits for data.
+     *
+     * @param[in] socket: Socket connection to receive data from.
+     */
     awaitable<void> receiver(tcp::socket& socket);
 
+    /**
+     * @brief Adds a function for the session to run on received message.
+     *
+     * @param[in] function: Function to run on received message.
+     */
     void set_poster(std::function<void(std::string&)>);
+
+    /**
+     * @brief Adds a function for the session to run on error disconnection.
+     *
+     * @param[in] function: Function to run on error disconnection.
+     */
     void set_disconnecter(std::function<void(void)>);
+
+    /**
+     * @brief Connects the session as client and starts the asio thread.
+     *
+     * @throws RuntimeError on connection failure.
+     */
     void connect();
+
+    /**
+     * @brief Adds a string to the buffer.
+     *
+     * Adds a string to the buffer, appending the string with a '\n' at the end,
+     * canceling the timer for the message to be sent.
+     *
+     * @param[in] message: Message to be buffered.
+     */
     void add_to_buffer(std::string);
 };
 
@@ -61,7 +115,6 @@ class Chat : public Gtk::Box
     Gtk::Entry *ip_entry{}, *port_entry{}, *message_entry{};
     Gtk::Box *chat_box{}, *footer_box{};
     Gtk::ScrolledWindow *chat_scrolled{};
-
     Gtk::Label *status_label{};
 
     std::unique_ptr<Session> session{};
@@ -74,8 +127,19 @@ class Chat : public Gtk::Box
      */
     void on_realize() override;
 
+    /**
+     * @brief Buffers the message from the Entry to the Session Buffer for sending.
+     *
+     * Does nothing if Entry is empty, else it adds the message and empties the Entry.
+     */
     inline void message_buffer();
 
+    /**
+     * @brief Tries connecting as client.
+     *
+     * Checks the button to see if it needs to connect or disconnect, then tries
+     * to connect as client and adds any needed information to the Session object.
+     */
     inline void session_connection();
 
 public:
@@ -86,10 +150,6 @@ public:
      * Checks for file issues, gets Widgets and connects needed signals.
      */
     Chat();
-
-    // Call this from anywhere on the Asio thread to safely update GTK
-    //void post_to_gtk();
-
 };
 
 #endif

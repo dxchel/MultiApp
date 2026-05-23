@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <gtkmm.h>
-#include <string>
 #include <thread>
 
 Session::Session(const std::string &host, unsigned port) : host(host), port(port)
@@ -34,8 +33,6 @@ void Session::connect()
 
     std::cout << "Connecting to " << host << ":" << port << "...\n";
 
-    // Resolve and connect synchronously before starting the event loop —
-    // simplifies startup error handling significantly
     asio::error_code ec;
     auto endpoints = resolver.resolve(host, std::to_string(port), ec);
     if (ec) {
@@ -62,10 +59,11 @@ void Session::connect()
         }
     });
 
+    // Spawn receiver and sender
     asio::co_spawn(ioc, receiver(sockets[0]), asio::detached);
     asio::co_spawn(ioc, sender(sockets[0]), asio::detached);
 
-    // Run the event loop until ioc.stop() is called
+    // Run the event loop in separate thread until ioc.stop() is called
     ioc_thread = std::thread([this](){ ioc.run(); });
 }
 
@@ -101,6 +99,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
         asio::streambuf buf;
 
         while (true) {
+            // Receive until a '\n'
             std::size_t n = co_await asio::async_read_until(
                 socket, buf, '\n', use_awaitable);
 
@@ -109,7 +108,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
                 asio::buffers_begin(buf.data()) + static_cast<std::ptrdiff_t>(n));
             buf.consume(n);
 
-            // Strip \r\n
+            // Strip \r\n and make Glib valid
             while (!line.empty() && (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r'))
                 line.erase(line.size() - 1);
             if ( !line.size() ) continue;
@@ -127,8 +126,11 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
 
     if ( socket.is_open() ) socket.close();
     if ( !ioc.stopped() ) ioc.stop();
-    dispatch.connect(disconnecter);
-    dispatch.emit();
+    if ( disconnecter )
+    {
+        dispatch.connect(std::move(disconnecter));
+        dispatch.emit();
+    }
 }
 
 void Session::add_to_buffer(std::string message)
@@ -169,10 +171,9 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
         throw ex;
     }
 
-    // Get the GtkBuilder-instantiated nav and header:
+    // Get the GtkBuilder-instantiated objects:
     auto header {Gtk::manage(ref_builder->get_widget<Gtk::Box>("header_box"))};
 
-    // Get the GtkBuilder-instantiated widgets, and connect a signal handler
     home_button = ref_builder->get_widget<Gtk::Button>("home_button");
     connect_button = ref_builder->get_widget<Gtk::Button>("connect_button");
     message_button = ref_builder->get_widget<Gtk::Button>("message_button");
@@ -207,6 +208,7 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
     append(*footer_box);
 }
 
+// Get StatusLabel from parent
 void Chat::on_realize()
 {
     Gtk::Box::on_realize();
@@ -260,9 +262,11 @@ inline void Chat::session_connection()
             bubble->set_margin(7);
             chat_box->append(*bubble);
 
-            // Scroll to bottom and queue resize to ensure new message is shown
-            auto adj = chat_scrolled->get_vadjustment();
-            adj->set_value(adj->get_upper());
+            Glib::signal_idle().connect_once([this]()
+            {
+                auto adj = chat_scrolled->get_vadjustment();
+                adj->set_value(adj->get_upper() - adj->get_page_size());
+            });
         });
     } catch (const std::exception& e) {
         std::cerr << "[fatal] while creating session " << e.what() << std::endl;
