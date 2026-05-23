@@ -16,18 +16,25 @@ TEST_F(BrowserTest, BrowserStructuralTest)
 {
     ASSERT_THAT(browser, ::testing::NotNull());
     auto header_t {dynamic_cast<Gtk::Box *>(browser->get_first_child())};
+    ASSERT_THAT(header_t, ::testing::NotNull());
     ASSERT_THAT(header_t, ::testing::Eq(header));
     auto back_t {dynamic_cast<Gtk::Button *>(header->get_first_child())};
+    ASSERT_THAT(back_t, ::testing::NotNull());
     ASSERT_THAT(back_t, ::testing::Eq(back_button));
     auto forward_t {dynamic_cast<Gtk::Button *>(back_t->get_next_sibling())};
+    ASSERT_THAT(forward_t, ::testing::NotNull());
     ASSERT_THAT(forward_t, ::testing::Eq(forward_button));
     auto home_t {dynamic_cast<Gtk::Button *>(forward_t->get_next_sibling())};
+    ASSERT_THAT(home_t, ::testing::NotNull());
     ASSERT_THAT(home_t, ::testing::Eq(home_button));
     auto reload_t {dynamic_cast<Gtk::Button *>(home_t->get_next_sibling())};
+    ASSERT_THAT(reload_t, ::testing::NotNull());
     ASSERT_THAT(reload_t, ::testing::Eq(reload_button));
     auto entry_t {dynamic_cast<Gtk::Entry *>(reload_t->get_next_sibling())};
+    ASSERT_THAT(entry_t, ::testing::NotNull());
     ASSERT_THAT(entry_t, ::testing::Eq(uri_entry));
     auto enter_t {dynamic_cast<Gtk::Button *>(entry_t->get_next_sibling())};
+    ASSERT_THAT(enter_t, ::testing::NotNull());
     ASSERT_THAT(enter_t, ::testing::Eq(enter_button));
     auto menu_t {dynamic_cast<Gtk::MenuButton *>(enter_t->get_next_sibling())};
     EXPECT_THAT(menu_t, ::testing::Eq(menu_button));

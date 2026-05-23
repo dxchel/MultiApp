@@ -7,6 +7,7 @@
 #include "../../src/include/main_application.hpp"
 #include "../../src/include/browser_app.hpp"
 #include "../../src/include/fractal_app.hpp"
+#include "../../src/include/chat_app.hpp"
 
 
 /**
@@ -34,7 +35,7 @@ protected:
  * @brief Contains Browser object and Structural/Functional tests.
  *
  * Class to create an object with test functions for the Browser class,
- * only contains a Browser object, Structural and Functional test functions.
+ * only contains Browser class objects, Structural and Functional test functions.
  * */
 class BrowserTest : public testing::Test
 {
@@ -61,7 +62,7 @@ protected:
  * @brief Contains Fractal object and Structural/Functional tests.
  *
  * Class to create an object with test functions for the Fractal class,
- * only contains a Fractal object, Structural and Functional test functions.
+ * only contains Fractal class objects, Structural and Functional test functions.
  * */
 class FractalTest : public testing::Test
 {
@@ -86,5 +87,31 @@ protected:
         *b_min_scale{}, *b_max_scale{};
 
     std::string selection{};
+};
+
+
+/**
+ * @brief Contains Chat object and Structural/Functional tests.
+ *
+ * Class to create an object with test functions for the Chat class,
+ * only contains Chat class objects, Structural and Functional test functions.
+ * */
+class ChatTest : public testing::Test
+{
+protected:
+    /**
+     * @brief Creates Chat object chat.
+     *
+     * Obtains chat object using default constructor for testing.
+     * */
+    ChatTest();
+
+    Chat *chat{};
+
+    Gtk::Button *home_button{}, *connect_button{}, *message_button{};
+    Gtk::Entry *ip_entry{}, *port_entry{}, *message_entry{};
+    Gtk::Box *chat_box{}, *footer_box{};
+    Gtk::ScrolledWindow *chat_scrolled{};
+    Gtk::Label *status_label{};
 };
 #endif
