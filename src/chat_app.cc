@@ -48,17 +48,6 @@ void Session::connect()
         throw std::runtime_error("Failed to connect to server");
     }
 
-    dispatch.connect([this]() {
-        std::lock_guard<std::mutex> lock(queue_mutex);
-        while (!message_queue.empty()) {
-            std::string message{std::move(message_queue.front())};
-            message_queue.pop_front();
-
-            std::cout << message << std::endl;
-            if (poster) poster(message);
-        }
-    });
-
     // Spawn receiver and sender
     asio::co_spawn(ioc, receiver(sockets[0]), asio::detached);
     asio::co_spawn(ioc, sender(sockets[0]), asio::detached);
@@ -118,7 +107,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
                 std::lock_guard<std::mutex> lock(queue_mutex);
                 message_queue.push_back(std::string(line.c_str()));
             }
-            dispatch.emit();
+            poster();
         }
     } catch (const std::exception&) {
         std::cout << std::endl << "[disconnected receiver from server due to exception]" << std::endl;
@@ -126,11 +115,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
 
     if ( socket.is_open() ) socket.close();
     if ( !ioc.stopped() ) ioc.stop();
-    if ( disconnecter )
-    {
-        dispatch.connect(std::move(disconnecter));
-        dispatch.emit();
-    }
+    if ( disconnecter ) disconnecter();
 }
 
 void Session::add_to_buffer(std::string message)
@@ -140,7 +125,7 @@ void Session::add_to_buffer(std::string message)
     return;
 }
 
-void Session::set_poster(std::function<void(std::string&)> message_poster)
+void Session::set_poster(std::function<void(void)> message_poster)
     { poster = std::move(message_poster); }
 
 void Session::set_disconnecter(std::function<void(void)> new_disconnecter)
@@ -242,8 +227,39 @@ inline void Chat::session_connection()
         session = std::make_unique<Session>(host, port);
         session->connect();
         session->set_disconnecter([this]() { session_connection(); });
-        session->set_poster([this](std::string& message)
-        {
+        session->set_poster([this]() { poster(); });
+    } catch (const std::exception& e) {
+        std::cerr << "[fatal] while creating session " << e.what() << std::endl;
+        status_label->set_label("Something went wrong when trying to connect, check cerr");
+        session = nullptr;
+        return;
+    }
+
+    connect_button->set_label("Disconnect");
+    ip_entry->set_sensitive(false);
+    port_entry->set_sensitive(false);
+    footer_box->set_visible(true);
+    message_entry->grab_focus();
+    status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
+    return;
+}
+
+inline void Chat::message_buffer ()
+{
+    if ( !message_entry->get_text_length() ) return;
+    session->add_to_buffer(message_entry->get_text());
+    message_entry->delete_text(0, -1);
+};
+
+inline void Chat::poster ()
+{
+    dispatcher.connect([this]() {
+        std::lock_guard<std::mutex> lock(session->queue_mutex);
+        while (!session->message_queue.empty()) {
+            std::string message{std::move(session->message_queue.front())};
+            session->message_queue.pop_front();
+
+            std::cout << message << std::endl;
             auto bubble {Gtk::manage(new Gtk::Label())};
             if ( message.compare(0, 5, "(you)") )
             {
@@ -267,26 +283,7 @@ inline void Chat::session_connection()
                 auto adj = chat_scrolled->get_vadjustment();
                 adj->set_value(adj->get_upper() - adj->get_page_size());
             });
-        });
-    } catch (const std::exception& e) {
-        std::cerr << "[fatal] while creating session " << e.what() << std::endl;
-        status_label->set_label("Something went wrong when trying to connect, check cerr");
-        session = nullptr;
-        return;
-    }
-
-    connect_button->set_label("Disconnect");
-    ip_entry->set_sensitive(false);
-    port_entry->set_sensitive(false);
-    footer_box->set_visible(true);
-    message_entry->grab_focus();
-    status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
-    return;
-}
-
-inline void Chat::message_buffer ()
-{
-    if ( !message_entry->get_text_length() ) return;
-    session->add_to_buffer(message_entry->get_text());
-    message_entry->delete_text(0, -1);
+        }
+    });
+    dispatcher.emit();
 };

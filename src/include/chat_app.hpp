@@ -28,20 +28,20 @@ class Session
 {
     std::string send_buf{}, host{};
     unsigned port{};
-    std::deque<std::string> message_queue;
 
     std::deque<tcp::socket> sockets{};
 
     asio::io_context ioc{};
     std::unique_ptr<asio::steady_timer> send_timer{};
-    std::mutex queue_mutex;
     std::thread ioc_thread{};
-    Glib::Dispatcher dispatch;
 
-    std::function<void(std::string&)> poster{};
+    std::function<void(void)> poster{};
     std::function<void(void)> disconnecter{};
 
 public:
+    std::deque<std::string> message_queue;
+    std::mutex queue_mutex;
+
     /**
      * @brief Connects the session as client and starts the asio thread.
      * 
@@ -72,7 +72,7 @@ public:
      *
      * @param[in] function: Function to run on received message.
      */
-    void set_poster(std::function<void(std::string&)>);
+    void set_poster(std::function<void(void)>);
 
     /**
      * @brief Adds a function for the session to run on error disconnection.
@@ -117,6 +117,8 @@ class Chat : public Gtk::Box
     Gtk::ScrolledWindow *chat_scrolled{};
     Gtk::Label *status_label{};
 
+    Glib::Dispatcher dispatcher{};
+
     std::unique_ptr<Session> session{};
 
     /**
@@ -141,6 +143,13 @@ class Chat : public Gtk::Box
      * to connect as client and adds any needed information to the Session object.
      */
     inline void session_connection();
+
+    /**
+     * @brief Poster function to run when the session receives data.
+     * 
+     * This function uses the session data queue and adds the message bubbles to the box
+     */
+    inline void poster();
 
 public:
     /**
