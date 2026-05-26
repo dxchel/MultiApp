@@ -1,7 +1,7 @@
 PROGRAM=multiapp
-OBJECTS=build/fractal_app.o build/browser_app.o build/main_application.o
+OBJECTS=build/main_application.o build/browser_app.o build/fractal_app.o build/chat_app.o
 MAIN=build/main.o
-TESTS=test_build/main_application_tests.o test_build/browser_app_tests.o test_build/fractal_app_tests.o test_build/main.o
+TESTS=test_build/main.o test_build/main_application_tests.o test_build/browser_app_tests.o test_build/fractal_app_tests.o test_build/chat_app_tests.o
 
 CC=g++
 CFLAGS=$(shell pkg-config --cflags gtkmm-4.0 webkitgtk-6.0 gtest_main)

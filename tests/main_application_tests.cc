@@ -7,12 +7,10 @@
 MainApplicationTest::MainApplicationTest() : main_app (MainApplication::create()) {};
 
 
-Gtk::ApplicationWindow* MainApplicationTest::create_window() { return main_app->create_window(); }
-
 TEST_F(MainApplicationTest, MainApplicationStructureTest)
 {
     ASSERT_THAT(main_app, ::testing::NotNull());
-    auto window {dynamic_cast<Gtk::Window *>(create_window())};
+    auto window {dynamic_cast<Gtk::Window *>(main_app->create_window())};
     ASSERT_THAT(window, ::testing::NotNull());
     auto box {dynamic_cast<Gtk::Box *>(window->get_child())};
     ASSERT_THAT(box, ::testing::NotNull());

@@ -37,7 +37,8 @@ MultiApp/            // Core application files
 
 - 🚧 Simple internet browser
 - 🚧 Fractal creator
-- ❌ Local chat app
+- 🚧 Local chat app
+- ❌ Maze generator/player/solver
 - 🔬 Other goodies in the future
 
 ## 🏗️ Requirements
@@ -46,11 +47,13 @@ In Arch based OS:
 
 - gtkmm-4.0
 - webkitgtk-6.0
+- asio
 
 In Ubuntu/Debian based OS:
 
 - libgtkmm-4.0-dev
 - libwebkitgtk-6.0-dev
+- libasio-dev
 
 ## 🔨 Build and run
 

@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 1.0 -->
+<interface>
+  <!-- interface-name browser_app.ui -->
+  <requires lib="gtk" version="4.8"/>
+  <object class="GtkBox" id="header_box">
+    <property name="homogeneous">True</property>
+    <property name="margin-bottom">7</property>
+    <property name="margin-end">14</property>
+    <property name="margin-start">14</property>
+    <property name="margin-top">7</property>
+    <property name="spacing">7</property>
+    <child>
+      <object class="GtkButton" id="home_button">
+        <property name="icon-name">go-home</property>
+        <property name="tooltip-text">Home</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEntry" id="ip_entry">
+        <property name="hexpand">True</property>
+        <property name="placeholder-text">Enter URL or search...</property>
+        <property name="primary-icon-name">internet-amarok</property>
+        <property name="text">localhost</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEntry" id="port_entry">
+        <property name="hexpand">True</property>
+        <property name="input-purpose">digits</property>
+        <property name="placeholder-text">Enter URL or search...</property>
+        <property name="primary-icon-name">internet-amarok</property>
+        <property name="text">1234</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="connect_button">
+        <property name="icon-name">keyboard-enter-symbolic</property>
+        <property name="label">Connect</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkScrolledWindow" id="chat_scrolled">
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
+    <child>
+      <object class="GtkBox" id="chat_box">
+        <property name="hexpand">True</property>
+        <property name="orientation">vertical</property>
+        <property name="vexpand">True</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkBox" id="footer_box">
+    <property name="visible">False</property>
+    <child>
+      <object class="GtkEntry" id="message_entry">
+        <property name="hexpand">True</property>
+        <property name="max-length">2048</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="message_button">
+        <property name="icon-name">keyboard-enter-symbolic</property>
+      </object>
+    </child>
+  </object>
+</interface>
