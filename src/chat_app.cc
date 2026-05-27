@@ -195,7 +195,7 @@ inline void Chat::session_connection() {
         footer_box->set_visible(false);
         ip_entry->set_sensitive(true);
         port_entry->set_sensitive(true);
-        status_label->set_label("Disonnected from server!");
+        status_label->set_label("Disconnected from server!");
         return;
     }
 
@@ -207,7 +207,7 @@ inline void Chat::session_connection() {
         session = std::make_unique<Session>(host, port);
         session->connect();
         session->set_disconnecter([this]() { session_connection(); });
-        session->set_poster([this]() { poster(); });
+        session->set_poster([this]() { dispatcher.emit(); });
     } catch (const std::exception& e) {
         std::cerr << "[fatal] while creating session " << e.what() << std::endl;
         status_label->set_label("Something went wrong when trying to connect, check cerr");
@@ -221,16 +221,6 @@ inline void Chat::session_connection() {
     footer_box->set_visible(true);
     message_entry->grab_focus();
     status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
-    return;
-}
-
-inline void Chat::message_buffer () {
-    if ( !message_entry->get_text_length() ) return;
-    session->add_to_buffer(message_entry->get_text());
-    message_entry->delete_text(0, -1);
-};
-
-inline void Chat::poster () {
     dispatcher.connect([this]() {
         std::lock_guard<std::mutex> lock(session->queue_mutex);
         while (!session->message_queue.empty()) {
@@ -260,5 +250,11 @@ inline void Chat::poster () {
             });
         }
     });
-    dispatcher.emit();
+    return;
+}
+
+inline void Chat::message_buffer () {
+    if ( !message_entry->get_text_length() ) return;
+    session->add_to_buffer(message_entry->get_text());
+    message_entry->delete_text(0, -1);
 };

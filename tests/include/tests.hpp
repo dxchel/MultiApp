@@ -1,5 +1,4 @@
-#ifndef _TESTERS_
-#define _TESTERS_
+#pragma once
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -110,4 +109,3 @@ protected:
     Gtk::ScrolledWindow *chat_scrolled{};
     Gtk::Label *status_label{};
 };
-#endif

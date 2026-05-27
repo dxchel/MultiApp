@@ -1,5 +1,4 @@
-#ifndef _MAIN_WINDOW_
-#define _MAIN_WINDOW_
+#pragma once
 
 #include <gtkmm.h>
 
@@ -48,5 +47,3 @@ public:
     static Glib::RefPtr<MainApplication> create();
     Gtk::Label *status_label{};
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _FRACTAL_APP_
-#define _FRACTAL_APP_
+#pragma once
 
 #include<any>
 
@@ -176,5 +175,3 @@ public:
      */
     FractalBox();
 };
-
-#endif

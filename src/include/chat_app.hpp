@@ -1,5 +1,4 @@
-#ifndef _CHAT_APP_
-#define _CHAT_APP_
+#pragma once
 
 #include <atomic>
 #include <gtkmm.h>
@@ -142,13 +141,6 @@ class Chat : public Gtk::Box {
      */
     inline void session_connection();
 
-    /**
-     * @brief Poster function to run when the session receives data.
-     * 
-     * This function uses the session data queue and adds the message bubbles to the box
-     */
-    inline void poster();
-
 public:
     /**
      * @brief Creates Chat object with all needed Widgets and signals.
@@ -158,5 +150,3 @@ public:
      */
     Chat();
 };
-
-#endif

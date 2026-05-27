@@ -1,5 +1,4 @@
-#ifndef _BROWSER_APP_
-#define _BROWSER_APP_
+#pragma once
 
 #define HOME_URL "https://dxchel.github.io/portfolio"
 
@@ -92,5 +91,3 @@ public:
                                    WebKitNavigationAction *action,
                                    gpointer user_data);
 };
-
-#endif
