@@ -195,6 +195,7 @@ inline void Chat::session_connection() {
         footer_box->set_visible(false);
         ip_entry->set_sensitive(true);
         port_entry->set_sensitive(true);
+        home_button->set_sensitive(true);
         status_label->set_label("Disconnected from server!");
         return;
     }
@@ -218,6 +219,7 @@ inline void Chat::session_connection() {
     connect_button->set_label("Disconnect");
     ip_entry->set_sensitive(false);
     port_entry->set_sensitive(false);
+    home_button->set_sensitive(false);
     footer_box->set_visible(true);
     message_entry->grab_focus();
     status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
