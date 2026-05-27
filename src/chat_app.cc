@@ -174,6 +174,16 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     insert_child_at_start(*header);
     append(*chat_scrolled);
     append(*footer_box);
+
+    auto css_provider = Gtk::CssProvider::create();
+    css_provider->load_from_path("./res/gtk/chat_app.css");
+
+    // Add to the default display
+    Gtk::StyleContext::add_provider_for_display(
+        Gdk::Display::get_default(),
+        css_provider,
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
 }
 
 // Get StatusLabel from parent
@@ -233,17 +243,16 @@ inline void Chat::session_connection() {
             auto bubble {Gtk::manage(new Gtk::Label())};
             if ( message.compare(0, 5, "(you)") ) {
                 bubble->set_xalign(0.0);
-                bubble->set_margin_end(100);
+                bubble->set_css_classes({"bubble"});
             } else {
                 bubble->set_xalign(1.0);
-                bubble->set_margin_start(100);
+                bubble->set_css_classes({"bubble", "you"});
             }
             bubble->set_text(std::move(message));
             bubble->set_hexpand(true);
             bubble->set_vexpand(false);
             bubble->set_wrap(true);
             bubble->set_wrap_mode(Pango::WrapMode::WORD_CHAR);
-            bubble->set_margin(7);
             chat_box->append(*bubble);
 
             Glib::signal_idle().connect_once([this]() {

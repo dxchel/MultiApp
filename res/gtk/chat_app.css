@@ -1,0 +1,17 @@
+.bubble {
+    background-color: #F0F0F0;
+    padding: 1rem;
+    margin: 1rem 10rem 1rem 10rem;
+    border-radius: 1rem;
+    border: 0.1rem solid #A070C0;
+}
+
+.others {
+    background-color: #C0A0F0;
+    margin-left: 1rem;
+}
+
+.you {
+    background-color: #C0F0A0;
+    margin-right: 1rem;
+}
