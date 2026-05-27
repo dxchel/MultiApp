@@ -16,8 +16,7 @@
  * Class to create an object with test functions for the MainApplication class,
  * only contains a MainApplication object and Structural tests function.
  * */
-class MainApplicationTest : public testing::Test
-{
+class MainApplicationTest : public testing::Test {
 
 protected:
     /**
@@ -37,8 +36,7 @@ protected:
  * Class to create an object with test functions for the Browser class,
  * only contains Browser class objects, Structural and Functional test functions.
  * */
-class BrowserTest : public testing::Test
-{
+class BrowserTest : public testing::Test {
 protected:
     /**
      * @brief Creates Browser object browser.
@@ -64,8 +62,7 @@ protected:
  * Class to create an object with test functions for the Fractal class,
  * only contains Fractal class objects, Structural and Functional test functions.
  * */
-class FractalTest : public testing::Test
-{
+class FractalTest : public testing::Test {
 protected:
     /**
      * @brief Creates Fractal object fractal.
@@ -96,8 +93,7 @@ protected:
  * Class to create an object with test functions for the Chat class,
  * only contains Chat class objects, Structural and Functional test functions.
  * */
-class ChatTest : public testing::Test
-{
+class ChatTest : public testing::Test {
 protected:
     /**
      * @brief Creates Chat object chat.

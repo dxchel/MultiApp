@@ -10,8 +10,7 @@
  * Gtk::Application that initializes a window containing needed
  * Widgets for containing core apps in the project and running functions.
  */
-class MainApplication : public Gtk::Application
-{
+class MainApplication : public Gtk::Application {
     friend class MainApplicationTest;
     friend class MainApplicationTest_MainApplicationStructureTest_Test;
 

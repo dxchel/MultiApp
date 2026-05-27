@@ -7,24 +7,20 @@
 #include <gtkmm.h>
 #include <thread>
 
-Session::Session(const std::string &host, unsigned port) : host(host), port(port)
-{
-    if ( port > 65535 )
-    {
+Session::Session(const std::string &host, unsigned port) : host(host), port(port) {
+    if ( port > 65535 ) {
         std::cerr << "Port out of bounds (0-65535)" << std::endl;
         throw std::out_of_range("Port out of bounds (0-65535)");
     }
 }
 
-Session::~Session() noexcept
-{
+Session::~Session() noexcept {
     if ( !ioc.stopped() ) ioc.stop();
     if ( ioc_thread.joinable() ) ioc_thread.join();
     sockets.clear();
 }
 
-void Session::connect()
-{
+void Session::connect() {
     send_timer = std::make_unique<asio::steady_timer>(ioc);
     send_timer->expires_at(asio::steady_timer::time_point::min());
     tcp::resolver resolver(ioc);
@@ -101,9 +97,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
             while (!line.empty() && (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r'))
                 line.erase(line.size() - 1);
             if ( !line.size() ) continue;
-            line.make_valid();
-
-            {
+            line.make_valid(); {
                 std::lock_guard<std::mutex> lock(queue_mutex);
                 message_queue.push_back(std::string(line.c_str()));
             }
@@ -118,40 +112,29 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
     if ( disconnecter ) disconnecter();
 }
 
-void Session::add_to_buffer(std::string message)
-{
+void Session::add_to_buffer(std::string message) {
     send_buf.append(message + "\n");
     send_timer->cancel();
     return;
 }
 
-void Session::set_poster(std::function<void(void)> message_poster)
-    { poster = std::move(message_poster); }
+void Session::set_poster(std::function<void(void)> message_poster) { poster = std::move(message_poster); }
 
-void Session::set_disconnecter(std::function<void(void)> new_disconnecter)
-    { disconnecter = std::move(new_disconnecter); }
+void Session::set_disconnecter(std::function<void(void)> new_disconnecter) { disconnecter = std::move(new_disconnecter); }
 
 
-Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
-{
+Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
-    try
-    {
+    try {
         ref_builder->add_from_file("res/gtk/chat_app.ui");
-    }
-    catch(const Glib::FileError& ex)
-    {
+    } catch(const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << std::endl;
         throw ex;
-    }
-    catch(const Glib::MarkupError& ex)
-    {
+    } catch(const Glib::MarkupError& ex) {
         std::cerr << "MarkupError: " << ex.what() << std::endl;
         throw ex;
-    }
-    catch(const Gtk::BuilderError& ex)
-    {
+    } catch(const Gtk::BuilderError& ex) {
         std::cerr << "BuilderError: " << ex.what() << std::endl;
         throw ex;
     }
@@ -194,8 +177,7 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
 }
 
 // Get StatusLabel from parent
-void Chat::on_realize()
-{
+void Chat::on_realize() {
     Gtk::Box::on_realize();
     status_label = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
     if (!status_label) std::cout << "Status label not found" << std::endl;
@@ -203,11 +185,9 @@ void Chat::on_realize()
         status_label->set_text("Welcome to the LAN Chat!");
 }
 
-inline void Chat::session_connection()
-{
+inline void Chat::session_connection() {
     // Disconnect if connected
-    if (!connect_button->get_label().compare("Disconnect"))
-    {
+    if (!connect_button->get_label().compare("Disconnect")) {
         session = nullptr;
         std::cout << "\n[disconnected from server due to user request]\n";
 
@@ -244,15 +224,13 @@ inline void Chat::session_connection()
     return;
 }
 
-inline void Chat::message_buffer ()
-{
+inline void Chat::message_buffer () {
     if ( !message_entry->get_text_length() ) return;
     session->add_to_buffer(message_entry->get_text());
     message_entry->delete_text(0, -1);
 };
 
-inline void Chat::poster ()
-{
+inline void Chat::poster () {
     dispatcher.connect([this]() {
         std::lock_guard<std::mutex> lock(session->queue_mutex);
         while (!session->message_queue.empty()) {
@@ -261,12 +239,10 @@ inline void Chat::poster ()
 
             std::cout << message << std::endl;
             auto bubble {Gtk::manage(new Gtk::Label())};
-            if ( message.compare(0, 5, "(you)") )
-            {
+            if ( message.compare(0, 5, "(you)") ) {
                 bubble->set_xalign(0.0);
                 bubble->set_margin_end(100);
-            } else
-            {
+            } else {
                 bubble->set_xalign(1.0);
                 bubble->set_margin_start(100);
             }
@@ -278,8 +254,7 @@ inline void Chat::poster ()
             bubble->set_margin(7);
             chat_box->append(*bubble);
 
-            Glib::signal_idle().connect_once([this]()
-            {
+            Glib::signal_idle().connect_once([this]() {
                 auto adj = chat_scrolled->get_vadjustment();
                 adj->set_value(adj->get_upper() - adj->get_page_size());
             });

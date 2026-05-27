@@ -13,8 +13,7 @@
  * Gtk::Box implementing class that contains important Gtk Widgets
  * for loading, displaying and directing web pages into a Gkt::Box.
  */
-class Browser : public Gtk::Box
-{
+class Browser : public Gtk::Box {
     friend class BrowserTest;
     friend class BrowserTest_BrowserFunctionalTest_Test;
 

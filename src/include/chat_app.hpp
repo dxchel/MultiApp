@@ -24,8 +24,7 @@ static constexpr const char *LOCALHOST {"127.0.0.1"};
  * 
  * It has a poster and disconnecter function so it can interact with GUI.
  */
-class Session
-{
+class Session {
     std::string send_buf{}, host{};
     unsigned port{};
 
@@ -106,8 +105,7 @@ public:
  * Gtk::Box implementing class that contains important Gtk Widgets
  * for connecting and sending messages to another app.
  */
-class Chat : public Gtk::Box
-{
+class Chat : public Gtk::Box {
     friend class ChatTest;
     friend class ChatTest_ChatFunctionalTest_Test;
 

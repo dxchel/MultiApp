@@ -13,8 +13,7 @@ ChatTest::ChatTest() : chat (Gtk::manage(new Chat())),
     chat_box{chat->chat_box}, footer_box{chat->footer_box},
     chat_scrolled{chat->chat_scrolled}, status_label{chat->status_label} {};
 
-TEST_F(ChatTest, ChatStructuralTest)
-{
+TEST_F(ChatTest, ChatStructuralTest) {
     ASSERT_THAT(chat, ::testing::NotNull());
     auto header_t {dynamic_cast<Gtk::Box *>(chat->get_first_child())};
     ASSERT_THAT(header_t, ::testing::NotNull());
@@ -49,7 +48,6 @@ TEST_F(ChatTest, ChatStructuralTest)
     // EXPECT_THAT(status_label, ::testing::NotNull());
 }
 
-TEST_F(ChatTest, ChatFunctionalTest)
-{
+TEST_F(ChatTest, ChatFunctionalTest) {
     // Waiting for full function with server, due to the need of a server for validation
 }
