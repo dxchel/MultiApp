@@ -56,24 +56,22 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL) {
         throw ex;
     }
 
-    // Get the GtkBuilder-instantiated nav and header:
-    header = Gtk::manage(ref_builder->get_widget<Gtk::Box>("header_bar"));
-
     // Get the GtkBuilder-instantiated browser_scroller, and connect WebKitWebView with home site loaded
-    web_view = WEBKIT_WEB_VIEW(webkit_web_view_new());
+    web_view             = WEBKIT_WEB_VIEW(webkit_web_view_new());
     auto web_view_widget {Glib::wrap(GTK_WIDGET(web_view))};
     g_object_ref_sink(web_view_widget->gobj());
     web_view_widget->set_name("browser_webview");
     web_view_widget->set_vexpand(true);
 
-    // Get the GtkBuilder-instantiated buttons, and connect a signal handler
-    back_button = ref_builder->get_widget<Gtk::Button>("back_button");
+    // Get the GtkBuilder-instantiated widgets
+    header         = Gtk::manage(ref_builder->get_widget<Gtk::Box>("header_bar"));
+    back_button    = ref_builder->get_widget<Gtk::Button>("back_button");
     forward_button = ref_builder->get_widget<Gtk::Button>("forward_button");
-    home_button = ref_builder->get_widget<Gtk::Button>("home_button");
-    reload_button = ref_builder->get_widget<Gtk::Button>("reload_button");
-    uri_entry = ref_builder->get_widget<Gtk::Entry>("header_entry");
-    enter_button = ref_builder->get_widget<Gtk::Button>("enter_button");
-    menu_button = ref_builder->get_widget<Gtk::MenuButton>("header_menu");
+    home_button    = ref_builder->get_widget<Gtk::Button>("home_button");
+    reload_button  = ref_builder->get_widget<Gtk::Button>("reload_button");
+    uri_entry      = ref_builder->get_widget<Gtk::Entry>("header_entry");
+    enter_button   = ref_builder->get_widget<Gtk::Button>("enter_button");
+    menu_button    = ref_builder->get_widget<Gtk::MenuButton>("header_menu");
 
     // Add Callbacks
     if(back_button) [[likely]]

@@ -44,13 +44,15 @@ protected:
      * */
     BrowserTest();
 
-    Browser *browser{};
-    WebKitWebView *web_view{};
-    Gtk::Box *header{};
-    Gtk::Button *back_button{},*forward_button{},
-        *home_button{}, *reload_button{},
-        *enter_button{};
-    Gtk::Entry *uri_entry{};
+    Browser         *browser{};
+    WebKitWebView   *web_view{};
+    Gtk::Box        *header{};
+    Gtk::Button     *back_button{};
+    Gtk::Button     *forward_button{};
+    Gtk::Button     *home_button{};
+    Gtk::Button     *reload_button{};
+    Gtk::Button     *enter_button{};
+    Gtk::Entry      *uri_entry{};
     Gtk::MenuButton *menu_button{};
 };
 
@@ -70,17 +72,23 @@ protected:
      * */
     FractalTest();
 
-    FractalBox *fractal{};
-    Gtk::Box *menu{}, *consts_box{};
-    Gtk::Button *reset_button{}, *save_button{};
+    FractalBox    *fractal{};
+    Gtk::Box      *menu{};
+    Gtk::Box      *consts_box{};
+    Gtk::Button   *reset_button{};
+    Gtk::Button   *save_button{};
     Gtk::DropDown *fractal_dropdown{};
-    FractalArea *fractal_area{};
-    Gtk::Label *status_label{};
-    Gtk::Scale *iter_scale{},
-        *const_r_scale{}, *const_i_scale{},
-        *r_min_scale{}, *r_max_scale{},
-        *g_min_scale{}, *g_max_scale{},
-        *b_min_scale{}, *b_max_scale{};
+    FractalArea   *fractal_area{};
+    Gtk::Label    *status_label{};
+    Gtk::Scale    *iter_scale{};
+    Gtk::Scale    *const_r_scale{};
+    Gtk::Scale    *const_i_scale{};
+    Gtk::Scale    *r_min_scale{};
+    Gtk::Scale    *r_max_scale{};
+    Gtk::Scale    *g_min_scale{};
+    Gtk::Scale    *g_max_scale{};
+    Gtk::Scale    *b_min_scale{};
+    Gtk::Scale    *b_max_scale{};
 
     std::string selection{};
 };
@@ -103,9 +111,14 @@ protected:
 
     Chat *chat{};
 
-    Gtk::Button *home_button{}, *connect_button{}, *message_button{};
-    Gtk::Entry *ip_entry{}, *port_entry{}, *message_entry{};
-    Gtk::Box *chat_box{}, *footer_box{};
+    Gtk::Button         *home_button{};
+    Gtk::Button         *connect_button{};
+    Gtk::Button         *message_button{};
+    Gtk::Entry          *ip_entry{};
+    Gtk::Entry          *port_entry{};
+    Gtk::Entry          *message_entry{};
+    Gtk::Box            *chat_box{};
+    Gtk::Box            *footer_box{};
     Gtk::ScrolledWindow *chat_scrolled{};
-    Gtk::Label *status_label{};
+    Gtk::Label          *status_label{};
 };

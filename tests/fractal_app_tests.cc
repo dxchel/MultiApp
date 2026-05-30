@@ -8,15 +8,23 @@
 
 
 FractalTest::FractalTest() : fractal (Gtk::manage(new FractalBox())),
-    menu{fractal->menu}, consts_box{fractal->consts_box},
-    reset_button{fractal->reset_button}, save_button{fractal->save_button},
-    fractal_dropdown{fractal->fractal_dropdown}, fractal_area{fractal->fractal_area},
-    status_label{fractal->status_label}, iter_scale{fractal->iter_scale},
-    const_r_scale{fractal->const_r_scale}, const_i_scale{fractal->const_i_scale},
-    r_min_scale{fractal->r_min_scale}, r_max_scale{fractal->r_max_scale},
-    g_min_scale{fractal->g_min_scale}, g_max_scale{fractal->g_max_scale},
-    b_min_scale{fractal->b_min_scale}, b_max_scale{fractal->b_max_scale},
-    selection{fractal->selection} {};
+    menu             (fractal->menu),
+    consts_box       (fractal->consts_box),
+    reset_button     (fractal->reset_button),
+    save_button      (fractal->save_button),
+    fractal_dropdown (fractal->fractal_dropdown),
+    fractal_area     (fractal->fractal_area),
+    status_label     (fractal->status_label),
+    iter_scale       (fractal->iter_scale),
+    const_r_scale    (fractal->const_r_scale),
+    const_i_scale    (fractal->const_i_scale),
+    r_min_scale      (fractal->r_min_scale),
+    r_max_scale      (fractal->r_max_scale),
+    g_min_scale      (fractal->g_min_scale),
+    g_max_scale      (fractal->g_max_scale),
+    b_min_scale      (fractal->b_min_scale),
+    b_max_scale      (fractal->b_max_scale),
+    selection        (fractal->selection) {};
 
 TEST_F(FractalTest, FractalStructuralTest) {
     ASSERT_THAT(fractal, ::testing::NotNull());

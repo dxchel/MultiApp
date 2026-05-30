@@ -15,7 +15,6 @@ Glib::RefPtr<MainApplication> MainApplication::create() {
 }
 
 void MainApplication::on_activate() {
-    // The application has been started, so let's show a window.
     create_window()->present();
 }
 
@@ -37,10 +36,11 @@ Gtk::ApplicationWindow* MainApplication::create_window() {
 
     status_label = Gtk::manage(ref_builder->get_widget<Gtk::Label>("main_status_label"));
 
-    main_window = Gtk::manage(ref_builder->get_widget<Gtk::ApplicationWindow>("main_window"));
+    main_window  = Gtk::manage(ref_builder->get_widget<Gtk::ApplicationWindow>("main_window"));
 
     auto main_notebook {Gtk::manage(ref_builder->get_widget<Gtk::Notebook>("main_notebook"))};
-    auto main_box {Gtk::manage(ref_builder->get_widget<Gtk::Box>("Chat"))};
+    auto main_box      {Gtk::manage(ref_builder->get_widget<Gtk::Box>("Chat"))};
+
     selected_app = Gtk::manage(new Chat());
     main_box->append(*selected_app);
 

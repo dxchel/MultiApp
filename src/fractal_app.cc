@@ -30,15 +30,26 @@ int julia(double cr, double ci, int max_iter, const std::vector<std::any> consts
     return max_iter;
 }
 
-void FractalArea::set_selection(const std::string new_selection) { selection = new_selection; queue_draw(); }
-void FractalArea::set_max_iter(int iter) { max_iter = iter; queue_draw(); }
-void FractalArea::set_consts(double cr, double ci) { const_r = cr; const_i = ci; queue_draw(); }
+void FractalArea::set_selection(const std::string new_selection)
+    { selection = new_selection; queue_draw(); }
 
-void FractalArea::set_r(double min, double max) { r_lower_level = min/100; r_upper_level = max/100; queue_draw(); }
-void FractalArea::set_g(double min, double max) { g_lower_level = min/100; g_upper_level = max/100; queue_draw(); }
-void FractalArea::set_b(double min, double max) { b_lower_level = min/100; b_upper_level = max/100; queue_draw(); }
+void FractalArea::set_max_iter(int iter)
+    { max_iter = iter; queue_draw(); }
 
-void FractalArea::reset() { cx = -0.5; cy = 0.0; range = 3.5; queue_draw(); }
+void FractalArea::set_consts(double cr, double ci)
+    { const_r = cr; const_i = ci; queue_draw(); }
+
+void FractalArea::set_r(double min, double max)
+    { r_lower_level = min/100; r_upper_level = max/100; queue_draw(); }
+
+void FractalArea::set_g(double min, double max)
+    { g_lower_level = min/100; g_upper_level = max/100; queue_draw(); }
+
+void FractalArea::set_b(double min, double max)
+    { b_lower_level = min/100; b_upper_level = max/100; queue_draw(); }
+
+void FractalArea::reset()
+    { cx = -0.5; cy = 0.0; range = 3.5; queue_draw(); }
 
 void FractalArea::iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b) {
     if (iter == max_iter) { r = g = b = 0; return; }
@@ -55,12 +66,16 @@ void FractalArea::iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, ui
 }
 
 
-FractalArea::FractalArea(const std::string selection) : Gtk::DrawingArea(),
-    cx{-0.5}, cy{0}, range{3.5},
-    drag_start_cx{}, drag_start_cy{},
-    surface{}, selection{selection},
-    fractal_map{ { "Julia", julia }, { "Mandelbrot", mandelbrot }
-    } {
+FractalArea::FractalArea(const std::string selection) :
+    Gtk::DrawingArea(),
+    selection     (selection),
+    cx            (-0.5),
+    cy            (0.0),
+    range         (3.5),
+    drag_start_cx (),
+    drag_start_cy (),
+    surface       (),
+    fractal_map   ({ { "Julia", julia }, { "Mandelbrot", mandelbrot } }) {
     set_expand(true);
     set_draw_func(sigc::mem_fun(*this, &FractalArea::on_draw));
 
@@ -157,15 +172,15 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
     }
 
     // Get the GtkBuilder-instantiated nav and header:
-    menu = Gtk::manage(ref_builder->get_widget<Gtk::Box>("menu_bar"));
+    menu             = Gtk::manage(ref_builder->get_widget<Gtk::Box>("menu_bar"));
 
     // Get the GtkBuilder-instantiated buttons, and connect a signal handler
-    reset_button = ref_builder->get_widget<Gtk::Button>("reset_button");
-    save_button = ref_builder->get_widget<Gtk::Button>("save_button");
+    reset_button     = ref_builder->get_widget<Gtk::Button>("reset_button");
+    save_button      = ref_builder->get_widget<Gtk::Button>("save_button");
     fractal_dropdown = ref_builder->get_widget<Gtk::DropDown>("fractal_dropdown");
-    consts_box = ref_builder->get_widget<Gtk::Box>("consts_box");
+    consts_box       = ref_builder->get_widget<Gtk::Box>("consts_box");
 
-    fractal_area = Gtk::manage(new FractalArea());
+    fractal_area     = Gtk::manage(new FractalArea());
 
     // Add Callbacks
     if(reset_button) [[likely]]
@@ -203,6 +218,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
         });
         fractal_area->set_max_iter(static_cast<int>(iter_scale->get_value()));
     }
+
     r_min_scale = ref_builder->get_widget<Gtk::Scale>("r_scale_min");
     r_max_scale = ref_builder->get_widget<Gtk::Scale>("r_scale_max");
     if(r_min_scale && r_max_scale) [[likely]] {
@@ -213,6 +229,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
         r_max_scale->signal_value_changed().connect(r_change);
         fractal_area->set_r(r_min_scale->get_value(), r_max_scale->get_value());
     }
+
     g_min_scale = ref_builder->get_widget<Gtk::Scale>("g_scale_min");
     g_max_scale = ref_builder->get_widget<Gtk::Scale>("g_scale_max");
     if(g_min_scale && g_max_scale) [[likely]] {
@@ -223,6 +240,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
         g_max_scale->signal_value_changed().connect(g_change);
         fractal_area->set_g(g_min_scale->get_value(), g_max_scale->get_value());
     }
+
     b_min_scale = ref_builder->get_widget<Gtk::Scale>("b_scale_min");
     b_max_scale = ref_builder->get_widget<Gtk::Scale>("b_scale_max");
     if(b_min_scale && b_max_scale) [[likely]] {
@@ -233,6 +251,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
         b_max_scale->signal_value_changed().connect(b_change);
         fractal_area->set_b(b_min_scale->get_value(), b_max_scale->get_value());
     }
+
     const_r_scale = ref_builder->get_widget<Gtk::Scale>("const_r_scale");
     const_i_scale = ref_builder->get_widget<Gtk::Scale>("const_i_scale");
     if(const_r_scale && const_i_scale) [[likely]] {

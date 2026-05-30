@@ -114,13 +114,13 @@ class Server {
 
     asio::io_context ioc;
     tcp::acceptor    acceptor;
-    std::thread      ioc_thread;
+    std::thread      ioc_thread{};
     unsigned         current_id{};
 
     std::list<std::shared_ptr<Client>> clients{};
 
     /* Queue line for every client except origin, then wake their sender. */
-    void broadcast(const std::string&, Client*);
+    void broadcast(const std::string&, Client* = nullptr);
 
     /**
      * @brief Sender function to run so the session sends data.

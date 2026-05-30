@@ -39,11 +39,12 @@ protected:
     void on_activate() override;
 
 public:
+    Gtk::Label *status_label{};
+
     /**
      * @brief Creates RefPtr using class constructor.
      *
      * @return New MainApplication object RefPtr.
      */
     static Glib::RefPtr<MainApplication> create();
-    Gtk::Label *status_label{};
 };

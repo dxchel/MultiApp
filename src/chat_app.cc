@@ -8,8 +8,11 @@
 #include <thread>
 
 
-Session::Session(const std::string &host, unsigned port)
-    : host(host), port(port), send_timer(std::make_unique<asio::steady_timer>(ioc)), socket(ioc) {
+Session::Session(const std::string &host, unsigned port) :
+    host       (host),
+    port       (port),
+    send_timer (std::make_unique<asio::steady_timer>(ioc)),
+    socket     (ioc) {
     if ( port > 65535 ) {
         std::cerr << "Port out of bounds (0-65535)" << std::endl;
         throw std::out_of_range("Port out of bounds (0-65535)");
@@ -120,12 +123,14 @@ void Session::set_poster(std::function<void(void)> message_poster)
 void Session::set_disconnecter(std::function<void(void)> new_disconnecter)
     { disconnecter = std::move(new_disconnecter); }
 
-Server::Client::Client(asio::io_context& ioc, unsigned id)
-    : socket(ioc), timer(ioc), nickname("User" + std::to_string(id))
+Server::Client::Client(asio::io_context& ioc, unsigned id) :
+    socket   (ioc),
+    timer    (ioc),
+    nickname ("User" + std::to_string(id))
     { timer.expires_at(asio::steady_timer::time_point::min()); }
 
-Server::Server(unsigned port)
-    : acceptor(ioc, tcp::endpoint(tcp::v4(), static_cast<asio::ip::port_type>(port))) {
+Server::Server(unsigned port) :
+    acceptor(ioc, tcp::endpoint(tcp::v4(), static_cast<asio::ip::port_type>(port))) {
     asio::co_spawn(ioc, accept_loop(), asio::detached);
     ioc_thread = std::thread([this](){ ioc.run(); });
     std::cout << "[server] listening on port " << port << "\n";
@@ -145,7 +150,7 @@ Server::~Server() noexcept {
     std::cout << "[server] stopped\n";
 }
 
-void Server::broadcast(const std::string& line, Client* origin = nullptr) {
+void Server::broadcast(const std::string& line, Client* origin) {
     for (auto& client : clients) {
         if (client.get() == origin) continue;
         client->buf += line;
@@ -250,17 +255,17 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     // Get the GtkBuilder-instantiated objects:
     auto header {Gtk::manage(ref_builder->get_widget<Gtk::Box>("header_box"))};
 
-    home_button = ref_builder->get_widget<Gtk::Button>("home_button");
-    connect_button = ref_builder->get_widget<Gtk::Button>("connect_button");
-    message_button = ref_builder->get_widget<Gtk::Button>("message_button");
+    home_button     = ref_builder->get_widget<Gtk::Button>("home_button");
+    connect_button  = ref_builder->get_widget<Gtk::Button>("connect_button");
+    message_button  = ref_builder->get_widget<Gtk::Button>("message_button");
 
-    ip_entry = ref_builder->get_widget<Gtk::Entry>("ip_entry");
-    port_entry = ref_builder->get_widget<Gtk::Entry>("port_entry");
-    message_entry = ref_builder->get_widget<Gtk::Entry>("message_entry");
+    ip_entry        = ref_builder->get_widget<Gtk::Entry>("ip_entry");
+    port_entry      = ref_builder->get_widget<Gtk::Entry>("port_entry");
+    message_entry   = ref_builder->get_widget<Gtk::Entry>("message_entry");
 
-    chat_scrolled = Gtk::manage(ref_builder->get_widget<Gtk::ScrolledWindow>("chat_scrolled"));
-    chat_box = Gtk::manage(ref_builder->get_widget<Gtk::Box>("chat_box"));
-    footer_box = Gtk::manage(ref_builder->get_widget<Gtk::Box>("footer_box"));
+    chat_scrolled   = Gtk::manage(ref_builder->get_widget<Gtk::ScrolledWindow>("chat_scrolled"));
+    chat_box        = Gtk::manage(ref_builder->get_widget<Gtk::Box>("chat_box"));
+    footer_box      = Gtk::manage(ref_builder->get_widget<Gtk::Box>("footer_box"));
 
     // Add Callbacks
     if(home_button) [[likely]]
@@ -306,7 +311,7 @@ inline void Chat::session_connection() {
     // Disconnect if connected
     if (!connect_button->get_label().compare("Disconnect")) {
         session = nullptr;
-        server = nullptr;
+        server  = nullptr;
         std::cout << "\n[disconnected from server due to user request]\n";
 
         connect_button->set_label("Connect");

@@ -6,12 +6,18 @@
 #include <gmock/gmock.h>
 
 
-ChatTest::ChatTest() : chat (Gtk::manage(new Chat())),
-    home_button{chat->home_button}, connect_button{chat->connect_button},
-    message_button{chat->message_button}, ip_entry{chat->ip_entry},
-    port_entry{chat->port_entry}, message_entry{chat->message_entry},
-    chat_box{chat->chat_box}, footer_box{chat->footer_box},
-    chat_scrolled{chat->chat_scrolled}, status_label{chat->status_label} {};
+ChatTest::ChatTest() :
+    chat            (Gtk::manage(new Chat())),
+    home_button     (chat->home_button),
+    connect_button  (chat->connect_button),
+    message_button  (chat->message_button),
+    ip_entry        (chat->ip_entry),
+    port_entry      (chat->port_entry),
+    message_entry   (chat->message_entry),
+    chat_box        (chat->chat_box),
+    footer_box      (chat->footer_box),
+    chat_scrolled   (chat->chat_scrolled),
+    status_label    (chat->status_label) {};
 
 TEST_F(ChatTest, ChatStructuralTest) {
     ASSERT_THAT(chat, ::testing::NotNull());
