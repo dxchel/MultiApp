@@ -5,7 +5,7 @@ TESTS=test_build/main.o test_build/main_application_tests.o test_build/browser_a
 
 CC=g++
 CFLAGS=$(shell pkg-config --cflags gtkmm-4.0 webkitgtk-6.0 gtest_main)
-CFLAGS+= -Wall -Wextra -Werror -g -O0 -std=c++20
+CFLAGS+= -Wall -Wextra -Werror -g -std=c++20
 
 LDFLAGS=$(shell pkg-config --libs gtkmm-4.0 webkitgtk-6.0 gtest_main)
 
@@ -33,3 +33,7 @@ test_build/%.o : tests/%.cc
 
 clean: 
 	rm -rf *build *.exe 
+
+release: CFLAGS+= -O3
+release: LDFLAGS+= -s
+release: multiapp
