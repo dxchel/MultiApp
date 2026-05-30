@@ -1,5 +1,4 @@
-#ifndef _FRACTAL_APP_
-#define _FRACTAL_APP_
+#pragma once
 
 #include<any>
 
@@ -19,7 +18,8 @@
  *
  * @return Number of iterations until the value diverges.
  */
-int mandelbrot(double cr, double ci, int max_iter, const std::vector<std::any> = {});
+
+int mandelbrot(double, double, int, const std::vector<std::any> = {});
 /**
  * @brief Julia Fractal algorithm
  *
@@ -42,22 +42,28 @@ int julia(double, double, int, const std::vector<std::any> = {-0.5125, 0.5213});
  * Gtk::DrawingArea implementing class that contains important functions
  * for drawing fractals.
  */
-class FractalArea : public Gtk::DrawingArea
-{
+class FractalArea : public Gtk::DrawingArea {
     friend class FractalTest;
     friend class FractalTest_FractalFunctionalTest_Test;
 
-    double cx{}, cy{}, range{},
-        drag_start_cx{}, drag_start_cy{},
-        const_r{}, const_i{},
-        r_lower_level{}, r_upper_level{},
-        g_lower_level{}, g_upper_level{},
-        b_lower_level{}, b_upper_level{};
-    int max_iter{};
+    std::string selection;
+    double      cx{};
+    double      cy{};
+    double      range{};
+    double      drag_start_cx{};
+    double      drag_start_cy{};
+    double      const_r{};
+    double      const_i{};
+    double      r_lower_level{};
+    double      r_upper_level{};
+    double      g_lower_level{};
+    double      g_upper_level{};
+    double      b_lower_level{};
+    double      b_upper_level{};
+    int         max_iter{};
 
     Cairo::RefPtr<Cairo::ImageSurface> surface;
 
-    std::string selection;
     std::unordered_map<std::string, std::function<int(double, double, int, std::vector<std::any>)>> fractal_map;
 
     /**
@@ -82,6 +88,16 @@ public:
      */
     FractalArea(const std::string selection = "Julia");
 
+    /**
+     * @brief Draws the fractal needed into the Cairo Context.
+     *
+     * Whenever the drawing area needs to redraw, this slot will be called.
+     * It will draw the fractal using the current settings into the provided Cairo Context with threading support.
+     *
+     * @param[in] cr: Cairo Context to draw to.
+     * @param[in] w:  Width of the drawing area.
+     * @param[in] h:  Height of the drawing area.
+     */
     void on_draw(const Cairo::RefPtr<Cairo::Context>&, int, int);
 
     /**
@@ -92,12 +108,14 @@ public:
      * @param[in] new_selection: New fractal algorithm selection to use next.
      */
     void set_selection(const std::string new_selection);
+
     /**
      * @brief Sets the max_iter variable for fractal rsolution.
      *
      * @param[in] iter: New max_iter to use in the fractal algorithms.
      */
     void set_max_iter(int iter);
+
     /**
      * @brief Sets ranges for the blue channel in the iter_to_rgb function.
      *
@@ -105,6 +123,7 @@ public:
      * @param[in] max: New upper limit on the R spectrum to use.
      */
     void set_r(double min, double max);
+
     /**
      * @brief Sets ranges for the blue channel in the iter_to_rgb function.
      *
@@ -112,6 +131,7 @@ public:
      * @param[in] max: New upper limit on the G spectrum to use.
      */
     void set_g(double min, double max);
+
     /**
      * @brief Sets ranges for the blue channel in the iter_to_rgb function.
      *
@@ -119,6 +139,7 @@ public:
      * @param[in] max: New upper limit on the B spectrum to use.
      */
     void set_b(double min, double max);
+
     /**
      * @brief Sets the Julia algorithm constants.
      *
@@ -143,23 +164,27 @@ public:
  * Gtk::Box implementing class that contains important Gtk Widgets
  * for loading, displaying and saving fractals.
  */
-class FractalBox : public Gtk::Box
-{
+class FractalBox : public Gtk::Box {
     friend class FractalTest;
     friend class FractalTest_FractalFunctionalTest_Test;
 
-    Gtk::Box *menu{}, *consts_box{};
-    Gtk::Button *reset_button{}, *save_button{};
+    std::string   selection{};
+    Gtk::Box      *menu{};
+    Gtk::Box      *consts_box{};
+    Gtk::Button   *reset_button{};
+    Gtk::Button   *save_button{};
     Gtk::DropDown *fractal_dropdown{};
-    FractalArea *fractal_area{};
-    Gtk::Label *status_label{};
-    Gtk::Scale *iter_scale{},
-        *const_r_scale{}, *const_i_scale{},
-        *r_min_scale{}, *r_max_scale{},
-        *g_min_scale{}, *g_max_scale{},
-        *b_min_scale{}, *b_max_scale{};
-
-    std::string selection{};
+    FractalArea   *fractal_area{};
+    Gtk::Label    *status_label{};
+    Gtk::Scale    *iter_scale{};
+    Gtk::Scale    *const_r_scale{};
+    Gtk::Scale    *const_i_scale{};
+    Gtk::Scale    *r_min_scale{};
+    Gtk::Scale    *r_max_scale{};
+    Gtk::Scale    *g_min_scale{};
+    Gtk::Scale    *g_max_scale{};
+    Gtk::Scale    *b_min_scale{};
+    Gtk::Scale    *b_max_scale{};
 
     /**
      * @brief Get Main Application status label.
@@ -178,5 +203,3 @@ public:
      */
     FractalBox();
 };
-
-#endif

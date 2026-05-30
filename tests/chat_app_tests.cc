@@ -6,15 +6,20 @@
 #include <gmock/gmock.h>
 
 
-ChatTest::ChatTest() : chat (Gtk::manage(new Chat())),
-    home_button{chat->home_button}, connect_button{chat->connect_button},
-    message_button{chat->message_button}, ip_entry{chat->ip_entry},
-    port_entry{chat->port_entry}, message_entry{chat->message_entry},
-    chat_box{chat->chat_box}, footer_box{chat->footer_box},
-    chat_scrolled{chat->chat_scrolled}, status_label{chat->status_label} {};
+ChatTest::ChatTest() :
+    chat            (Gtk::manage(new Chat())),
+    home_button     (chat->home_button),
+    connect_button  (chat->connect_button),
+    message_button  (chat->message_button),
+    ip_entry        (chat->ip_entry),
+    port_entry      (chat->port_entry),
+    message_entry   (chat->message_entry),
+    chat_box        (chat->chat_box),
+    footer_box      (chat->footer_box),
+    chat_scrolled   (chat->chat_scrolled),
+    status_label    (chat->status_label) {};
 
-TEST_F(ChatTest, ChatStructuralTest)
-{
+TEST_F(ChatTest, ChatStructuralTest) {
     ASSERT_THAT(chat, ::testing::NotNull());
     auto header_t {dynamic_cast<Gtk::Box *>(chat->get_first_child())};
     ASSERT_THAT(header_t, ::testing::NotNull());
@@ -49,7 +54,6 @@ TEST_F(ChatTest, ChatStructuralTest)
     // EXPECT_THAT(status_label, ::testing::NotNull());
 }
 
-TEST_F(ChatTest, ChatFunctionalTest)
-{
+TEST_F(ChatTest, ChatFunctionalTest) {
     // Waiting for full function with server, due to the need of a server for validation
 }

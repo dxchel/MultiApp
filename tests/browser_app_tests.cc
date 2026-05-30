@@ -6,14 +6,19 @@
 #include <gmock/gmock.h>
 
 
-BrowserTest::BrowserTest() : browser (Gtk::manage(new Browser())),
-    web_view {browser->web_view}, header {browser->header}, back_button {browser->back_button},
-    forward_button {browser->forward_button}, home_button {browser->home_button},
-    reload_button {browser->reload_button}, enter_button {browser->enter_button},
-    uri_entry {browser->uri_entry}, menu_button {browser->menu_button} {};
+BrowserTest::BrowserTest() :
+    browser        (Gtk::manage(new Browser())),
+    web_view       (browser->web_view),
+    header         (browser->header),
+    back_button    (browser->back_button),
+    forward_button (browser->forward_button),
+    home_button    (browser->home_button),
+    reload_button  (browser->reload_button),
+    enter_button   (browser->enter_button),
+    uri_entry      (browser->uri_entry),
+    menu_button    (browser->menu_button) {};
 
-TEST_F(BrowserTest, BrowserStructuralTest)
-{
+TEST_F(BrowserTest, BrowserStructuralTest) {
     ASSERT_THAT(browser, ::testing::NotNull());
     auto header_t {dynamic_cast<Gtk::Box *>(browser->get_first_child())};
     ASSERT_THAT(header_t, ::testing::NotNull());
@@ -42,12 +47,10 @@ TEST_F(BrowserTest, BrowserStructuralTest)
     EXPECT_THAT(web_view_t, ::testing::NotNull());
 }
 
-TEST_F(BrowserTest, BrowserFunctionalTest)
-{
+TEST_F(BrowserTest, BrowserFunctionalTest) {
     ASSERT_THAT(Browser::get_uri_root(webkit_web_view_get_uri(browser->web_view)), ::testing::Eq("dxchel.github.io/portfolio"));
 
-    std::vector<std::string> uris_to_load
-    {
+    std::vector<std::string> uris_to_load {
         "google.com/",
         "https://github.com/",
         "www.github.com/",
@@ -59,17 +62,14 @@ TEST_F(BrowserTest, BrowserFunctionalTest)
     };
     std::string previous_uri {""};
     std::stack<std::string> uri_stack {};
-    for(auto &uri : uris_to_load)
-    {
+    for(auto &uri : uris_to_load) {
         uri_entry->set_text(uri);
         browser->entry_uri_load();
-        if(Browser::get_uri_root(uri) != Browser::get_uri_root(previous_uri))
-        {
+        if(Browser::get_uri_root(uri) != Browser::get_uri_root(previous_uri)) {
             uri_stack.push(uri);
             previous_uri = uri;
         }
-        if(uri.find(' ') < uri.size())
-        {
+        if(uri.find(' ') < uri.size()) {
             std::replace(uri.begin(), uri.end(), ' ', '+');
             uri = "https://www.google.com/search?q=" + uri;
         }

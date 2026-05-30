@@ -7,33 +7,27 @@
 #include <webkit/webkit.h>
 
 
-std::string Browser::get_uri_root(const std::string &uri)
-{
+std::string Browser::get_uri_root(const std::string &uri) {
     std::string result {std::regex_replace(uri, std::regex("(https?://|www\\.)"), "")};
     return result;
 }
 
-void Browser::entry_uri_load(std::string uri) const
-{
+void Browser::entry_uri_load(std::string uri) const {
     if(uri == "") [[unlikely]]
         // Get entry text
         uri = uri_entry->get_text();
 
     // Is current URI a web page.
     if(uri.find(' ') > uri.size() &&
-        std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$"))) [[likely]]
-    {
+        std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$"))) [[likely]] {
         // Add missing parts of the URL
-        if(uri.find("http") > uri.size()) [[likely]]
-        {
+        if(uri.find("http") > uri.size()) [[likely]] {
             if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL)) [[likely]]
                 uri = "www." + uri;
             uri = "https://" + uri;
         }else if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL)) [[unlikely]]
             std::regex_replace(uri, std::regex("https?://"), "https://www.");
-    }
-    else [[unlikely]]
-    {
+    } else [[unlikely]] {
         // Add as a google search
         std::replace(uri.begin(), uri.end(), ' ', '+');
         uri = "https://www.google.com/search?q=" + uri;
@@ -46,48 +40,38 @@ void Browser::entry_uri_load(std::string uri) const
         webkit_web_view_reload(web_view);
 }
 
-Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
-{
+Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
-    try
-    {
+    try {
         ref_builder->add_from_file("res/gtk/browser_app.ui");
-    }
-    catch(const Glib::FileError& ex)
-    {
+    } catch(const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << std::endl;
         throw ex;
-    }
-    catch(const Glib::MarkupError& ex)
-    {
+    } catch(const Glib::MarkupError& ex) {
         std::cerr << "MarkupError: " << ex.what() << std::endl;
         throw ex;
-    }
-    catch(const Gtk::BuilderError& ex)
-    {
+    } catch(const Gtk::BuilderError& ex) {
         std::cerr << "BuilderError: " << ex.what() << std::endl;
         throw ex;
     }
 
-    // Get the GtkBuilder-instantiated nav and header:
-    header = Gtk::manage(ref_builder->get_widget<Gtk::Box>("header_bar"));
-
     // Get the GtkBuilder-instantiated browser_scroller, and connect WebKitWebView with home site loaded
-    web_view = WEBKIT_WEB_VIEW(webkit_web_view_new());
+    web_view             = WEBKIT_WEB_VIEW(webkit_web_view_new());
     auto web_view_widget {Glib::wrap(GTK_WIDGET(web_view))};
     g_object_ref_sink(web_view_widget->gobj());
     web_view_widget->set_name("browser_webview");
     web_view_widget->set_vexpand(true);
 
-    // Get the GtkBuilder-instantiated buttons, and connect a signal handler
-    back_button = ref_builder->get_widget<Gtk::Button>("back_button");
+    // Get the GtkBuilder-instantiated widgets
+    header         = Gtk::manage(ref_builder->get_widget<Gtk::Box>("header_bar"));
+    back_button    = ref_builder->get_widget<Gtk::Button>("back_button");
     forward_button = ref_builder->get_widget<Gtk::Button>("forward_button");
-    home_button = ref_builder->get_widget<Gtk::Button>("home_button");
-    reload_button = ref_builder->get_widget<Gtk::Button>("reload_button");
-    uri_entry = ref_builder->get_widget<Gtk::Entry>("header_entry");
-    enter_button = ref_builder->get_widget<Gtk::Button>("enter_button");
-    menu_button = ref_builder->get_widget<Gtk::MenuButton>("header_menu");
+    home_button    = ref_builder->get_widget<Gtk::Button>("home_button");
+    reload_button  = ref_builder->get_widget<Gtk::Button>("reload_button");
+    uri_entry      = ref_builder->get_widget<Gtk::Entry>("header_entry");
+    enter_button   = ref_builder->get_widget<Gtk::Button>("enter_button");
+    menu_button    = ref_builder->get_widget<Gtk::MenuButton>("header_menu");
 
     // Add Callbacks
     if(back_button) [[likely]]
@@ -108,15 +92,13 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL)
     if(reload_button) [[likely]]
         reload_button->signal_clicked().connect
         (
-            [this]()
-            {
+            [this]() {
                 webkit_web_view_is_loading(web_view) ?
                 webkit_web_view_stop_loading(web_view) :
                 webkit_web_view_reload(web_view);
             }
         );
-    if(uri_entry) [[likely]]
-    {
+    if(uri_entry) [[likely]] {
         uri_entry->signal_activate().connect([this](){ entry_uri_load();});
         if(enter_button) [[likely]]
             enter_button->signal_clicked().connect([this](){ entry_uri_load();});
@@ -144,8 +126,7 @@ void Browser::on_realize() {
 
 GtkWidget *Browser::on_create_cb(WebKitWebView *web_view,
                                  WebKitNavigationAction *action,
-                                 gpointer)
-{
+                                 gpointer) {
     WebKitURIRequest *request {webkit_navigation_action_get_request(action)};
     const char *uri {webkit_uri_request_get_uri(request)};
 
@@ -160,8 +141,7 @@ GtkWidget *Browser::on_create_cb(WebKitWebView *web_view,
 
 void Browser::web_view_load_changed(WebKitWebView *web_view,
                                     const WebKitLoadEvent load_event,
-                                    gpointer user_data)
-{
+                                    gpointer user_data) {
     auto uri {webkit_web_view_get_uri(web_view)};
     auto browser {static_cast<Browser*>(user_data)};
     switch (load_event) {

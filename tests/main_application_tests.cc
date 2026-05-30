@@ -7,8 +7,7 @@
 MainApplicationTest::MainApplicationTest() : main_app (MainApplication::create()) {};
 
 
-TEST_F(MainApplicationTest, MainApplicationStructureTest)
-{
+TEST_F(MainApplicationTest, MainApplicationStructureTest) {
     ASSERT_THAT(main_app, ::testing::NotNull());
     auto window {dynamic_cast<Gtk::Window *>(main_app->create_window())};
     ASSERT_THAT(window, ::testing::NotNull());
