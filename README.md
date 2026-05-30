@@ -8,7 +8,8 @@ In the future it should have apps that work using SQL, SDL and even web requests
 
 - Current Apps:
   - Internet browser: Simple app for browsing the internet, can detect URLs even without 'https://' or 'www.', any other entry will be treated as search.
-  - Fractal creator: Simple app for creating fractal images. (WIP)
+  - Fractal creator: Simple app for creating fractal images.
+  - Local LAN chat: Simple LAN chatt app for chatting within LAN, can startup as client or host.
 
 ## Table of Contents
 
@@ -35,10 +36,11 @@ MultiApp/            // Core application files
 
 ## 🗺️ Roadmap
 
-- 🚧 Simple internet browser
-- 🚧 Fractal creator
-- 🚧 Local chat app
+- 🎉 Simple internet browser
+- 🎉 Fractal creator
+- 🎉 Local chat app
 - ❌ Maze generator/player/solver
+- ❌ Game of life
 - 🔬 Other goodies in the future
 
 ## 🏗️ Requirements
@@ -84,3 +86,6 @@ Window after adding directions and returning to repo in URL history, notice both
 
 Fractal app window:
 ![Fractal App](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/fractal.png)
+
+Chat app window:
+![Chat App](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/chat.png)

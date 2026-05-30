@@ -7,29 +7,15 @@
 #include <gtkmm.h>
 #include <thread>
 
-Session::Session(const std::string &host, unsigned port) : host(host), port(port)
-{
-    if ( port > 65535 )
-    {
+
+Session::Session(const std::string &host, unsigned port)
+    : host(host), port(port), send_timer(std::make_unique<asio::steady_timer>(ioc)), socket(ioc) {
+    if ( port > 65535 ) {
         std::cerr << "Port out of bounds (0-65535)" << std::endl;
         throw std::out_of_range("Port out of bounds (0-65535)");
     }
-}
-
-Session::~Session() noexcept
-{
-    if ( !ioc.stopped() ) ioc.stop();
-    if ( ioc_thread.joinable() ) ioc_thread.join();
-    sockets.clear();
-}
-
-void Session::connect()
-{
-    send_timer = std::make_unique<asio::steady_timer>(ioc);
     send_timer->expires_at(asio::steady_timer::time_point::min());
     tcp::resolver resolver(ioc);
-
-    sockets.emplace_back(ioc);
 
     std::cout << "Connecting to " << host << ":" << port << "...\n";
 
@@ -41,7 +27,7 @@ void Session::connect()
         throw std::runtime_error("Failed to resolve host");
     }
 
-    asio::connect(sockets[0], endpoints, ec);
+    asio::connect(socket, endpoints, ec);
     if (ec) {
         std::cerr << "[error] connect(): " << ec.message()
                   << std::endl << "Is the server running?" << std::endl;
@@ -49,11 +35,17 @@ void Session::connect()
     }
 
     // Spawn receiver and sender
-    asio::co_spawn(ioc, receiver(sockets[0]), asio::detached);
-    asio::co_spawn(ioc, sender(sockets[0]), asio::detached);
+    asio::co_spawn(ioc, receiver(socket), asio::detached);
+    asio::co_spawn(ioc, sender(socket), asio::detached);
 
     // Run the event loop in separate thread until ioc.stop() is called
     ioc_thread = std::thread([this](){ ioc.run(); });
+}
+
+Session::~Session() noexcept {
+    if ( !ioc.stopped() ) ioc.stop();
+    if ( ioc_thread.joinable() ) ioc_thread.join();
+    if ( socket.is_open() ) socket.close();
 }
 
 awaitable<void> Session::sender(tcp::socket& socket) {
@@ -101,9 +93,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
             while (!line.empty() && (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r'))
                 line.erase(line.size() - 1);
             if ( !line.size() ) continue;
-            line.make_valid();
-
-            {
+            line.make_valid(); {
                 std::lock_guard<std::mutex> lock(queue_mutex);
                 message_queue.push_back(std::string(line.c_str()));
             }
@@ -118,8 +108,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
     if ( disconnecter ) disconnecter();
 }
 
-void Session::add_to_buffer(std::string message)
-{
+void Session::add_to_buffer(std::string message) {
     send_buf.append(message + "\n");
     send_timer->cancel();
     return;
@@ -131,27 +120,129 @@ void Session::set_poster(std::function<void(void)> message_poster)
 void Session::set_disconnecter(std::function<void(void)> new_disconnecter)
     { disconnecter = std::move(new_disconnecter); }
 
+Server::Client::Client(asio::io_context& ioc, unsigned id)
+    : socket(ioc), timer(ioc), nickname("User" + std::to_string(id))
+    { timer.expires_at(asio::steady_timer::time_point::min()); }
 
-Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
-{
+Server::Server(unsigned port)
+    : acceptor(ioc, tcp::endpoint(tcp::v4(), static_cast<asio::ip::port_type>(port))) {
+    asio::co_spawn(ioc, accept_loop(), asio::detached);
+    ioc_thread = std::thread([this](){ ioc.run(); });
+    std::cout << "[server] listening on port " << port << "\n";
+}
+
+Server::~Server() noexcept {
+    asio::post(ioc, [this]() {
+        asio::error_code ec;
+        acceptor.close(ec);
+        for (auto& client : clients) {
+            if (client->socket.is_open()) client->socket.close(ec);
+            client->timer.cancel(ec);
+        }
+    });
+    if (!ioc.stopped()) ioc.stop();
+    if (ioc_thread.joinable()) ioc_thread.join();
+    std::cout << "[server] stopped\n";
+}
+
+void Server::broadcast(const std::string& line, Client* origin = nullptr) {
+    for (auto& client : clients) {
+        if (client.get() == origin) continue;
+        client->buf += line;
+        client->timer.cancel();
+    }
+}
+
+awaitable<void> Server::client_sender(std::shared_ptr<Client> client) {
+    try {
+        while (true) {
+            while (true) {
+                if (!client->buf.empty()) break;
+                asio::error_code ec;
+                co_await client->timer.async_wait(asio::redirect_error(use_awaitable, ec));
+                if (ec && ec != asio::error::operation_aborted) co_return;
+            }
+            std::string data;
+            std::swap(data, client->buf);
+            client->timer.expires_at(asio::steady_timer::time_point::min());
+            co_await asio::async_write(client->socket, asio::buffer(data), use_awaitable);
+        }
+    } catch (const std::exception& e) {
+        std::cout << "[server] sender error: " << e.what() << "\n";
+    }
+    asio::error_code ec;
+    if (client->socket.is_open()) client->socket.close(ec);
+}
+
+awaitable<void> Server::client_receiver(std::shared_ptr<Client> client) {
+    try {
+        asio::streambuf buf;
+        while (true) {
+            std::size_t n = co_await asio::async_read_until(client->socket, buf, '\n', use_awaitable);
+
+            Glib::ustring line(
+                asio::buffers_begin(buf.data()),
+                asio::buffers_begin(buf.data()) + static_cast<std::ptrdiff_t>(n));
+            buf.consume(n);
+
+            while (!line.empty() && (line[line.size()-1] == '\n' || line[line.size()-1] == '\r'))
+                line.erase(line.size()-1);
+            if (line.empty()) continue;
+            line.make_valid();
+
+            std::string message { line.c_str() };
+            std::cout << "[server] " << client->nickname << ": " << message << "\n";
+
+            client->buf += "(You): " + message + "\n";
+            client->timer.cancel();
+            broadcast("(" + client->nickname + "): " + message + "\n", client.get());
+        }
+    } catch (const std::exception& e) {
+        std::cout << "[server] " << client->nickname << " disconnected: " << e.what() << "\n";
+    }
+    asio::error_code ec;
+    if (client->socket.is_open()) client->socket.close(ec);
+    { clients.remove(client); }
+    broadcast(client->nickname + " disconnected!!!\n");
+}
+
+awaitable<void> Server::accept_loop() {
+    while (true) {
+        auto client = std::make_shared<Client>(ioc, ++current_id);
+        asio::error_code ec;
+        co_await acceptor.async_accept(client->socket, asio::redirect_error(use_awaitable, ec));
+        if (ec) {
+            std::cout << "[server] accept loop ending: " << ec.message() << "\n";
+            co_return;
+        }
+
+        try {
+            auto ep = client->socket.remote_endpoint();
+            client->fingerprint = ep.address().to_string() + ":" + std::to_string(ep.port());
+        } catch (...) { client->fingerprint = "unknown"; }
+        std::cout << "[server] new client: " << client->fingerprint << "\n";
+
+        clients.push_back(client);
+        broadcast(client->nickname + " connected!!!\n", client.get());
+
+        asio::co_spawn(ioc, client_receiver(client), asio::detached);
+        asio::co_spawn(ioc, client_sender(client),   asio::detached);
+    }
+}
+
+
+Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
-    try
-    {
+    try {
         ref_builder->add_from_file("res/gtk/chat_app.ui");
-    }
-    catch(const Glib::FileError& ex)
-    {
+    } catch(const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << std::endl;
         throw ex;
-    }
-    catch(const Glib::MarkupError& ex)
-    {
+    } catch(const Glib::MarkupError& ex) {
         std::cerr << "MarkupError: " << ex.what() << std::endl;
         throw ex;
-    }
-    catch(const Gtk::BuilderError& ex)
-    {
+    } catch(const Gtk::BuilderError& ex) {
         std::cerr << "BuilderError: " << ex.what() << std::endl;
         throw ex;
     }
@@ -191,11 +282,19 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL)
     insert_child_at_start(*header);
     append(*chat_scrolled);
     append(*footer_box);
+
+    auto css_provider = Gtk::CssProvider::create();
+    css_provider->load_from_path("./res/gtk/chat_app.css");
+
+    // Add to the default display
+    Gtk::StyleContext::add_provider_for_display(
+        Gdk::Display::get_default(),
+        css_provider,
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
 }
 
-// Get StatusLabel from parent
-void Chat::on_realize()
-{
+void Chat::on_realize() {
     Gtk::Box::on_realize();
     status_label = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
     if (!status_label) std::cout << "Status label not found" << std::endl;
@@ -203,87 +302,103 @@ void Chat::on_realize()
         status_label->set_text("Welcome to the LAN Chat!");
 }
 
-inline void Chat::session_connection()
-{
+inline void Chat::session_connection() {
     // Disconnect if connected
-    if (!connect_button->get_label().compare("Disconnect"))
-    {
+    if (!connect_button->get_label().compare("Disconnect")) {
         session = nullptr;
+        server = nullptr;
         std::cout << "\n[disconnected from server due to user request]\n";
 
         connect_button->set_label("Connect");
         footer_box->set_visible(false);
         ip_entry->set_sensitive(true);
         port_entry->set_sensitive(true);
-        status_label->set_label("Disonnected from server!");
+        home_button->set_sensitive(true);
+        status_label->set_label("Disconnected from server!");
         return;
     }
 
-    // Else connect as client
+    // Parse host / port
     auto port { static_cast<unsigned>(std::atoi(port_entry->get_text().c_str())) };
     auto host { ip_entry->get_text().lowercase().compare("localhost") ? ip_entry->get_text().c_str() : LOCALHOST };
 
+    // Try to connect as client
     try {
         session = std::make_unique<Session>(host, port);
-        session->connect();
-        session->set_disconnecter([this]() { session_connection(); });
-        session->set_poster([this]() { poster(); });
+        status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
     } catch (const std::exception& e) {
-        std::cerr << "[fatal] while creating session " << e.what() << std::endl;
-        status_label->set_label("Something went wrong when trying to connect, check cerr");
         session = nullptr;
-        return;
+        // If not localhost, give up
+        if ( !(host == std::string(LOCALHOST)) ) {
+            std::cerr << "[fatal] while creating session: " << e.what() << std::endl;
+            status_label->set_label("Something went wrong starting client, check cerr");
+            return;
+        }
+        // Localhost and no server found — become the server, then connect to ourselves
+        std::cout << "[info] no server on localhost, starting one...\n";
+        try {
+            server  = std::make_unique<Server>(port);
+            session = std::make_unique<Session>(LOCALHOST, port);
+            status_label->set_label("Hosting on port " + std::to_string(port) + " — waiting for peers!");
+        } catch (const std::exception& e2) {
+            std::cerr << "[fatal] could not start server: " << e2.what() << std::endl;
+            status_label->set_label("Could not start server, check cerr");
+            server  = nullptr;
+            session = nullptr;
+            return;
+        }
     }
 
     connect_button->set_label("Disconnect");
     ip_entry->set_sensitive(false);
     port_entry->set_sensitive(false);
+    home_button->set_sensitive(false);
     footer_box->set_visible(true);
     message_entry->grab_focus();
-    status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
-    return;
-}
 
-inline void Chat::message_buffer ()
-{
-    if ( !message_entry->get_text_length() ) return;
-    session->add_to_buffer(message_entry->get_text());
-    message_entry->delete_text(0, -1);
-};
+    session->set_disconnecter([this]()
+    { Glib::signal_idle().connect_once([this]() { session_connection(); }); });
+    session->set_poster([this]() { dispatcher->emit(); });
 
-inline void Chat::poster ()
-{
-    dispatcher.connect([this]() {
+    dispatcher = std::make_unique<Glib::Dispatcher>();
+    dispatcher->connect([this]() {
         std::lock_guard<std::mutex> lock(session->queue_mutex);
         while (!session->message_queue.empty()) {
             std::string message{std::move(session->message_queue.front())};
             session->message_queue.pop_front();
 
             std::cout << message << std::endl;
+
             auto bubble {Gtk::manage(new Gtk::Label())};
-            if ( message.compare(0, 5, "(you)") )
-            {
-                bubble->set_xalign(0.0);
-                bubble->set_margin_end(100);
-            } else
-            {
-                bubble->set_xalign(1.0);
-                bubble->set_margin_start(100);
+            bubble->set_css_classes({ "bubble" });
+            std::smatch matches{};
+            if ( std::regex_search(message, matches, std::regex(R"(^\((\w+)\):)")) ) {
+                if ( matches[1].str() == "You" ) {
+                    bubble->set_xalign(1.0);
+                    bubble->add_css_class("you");
+                } else {
+                    bubble->set_xalign(0.0);
+                    bubble->add_css_class("others");
+                }
             }
             bubble->set_text(std::move(message));
             bubble->set_hexpand(true);
             bubble->set_vexpand(false);
             bubble->set_wrap(true);
             bubble->set_wrap_mode(Pango::WrapMode::WORD_CHAR);
-            bubble->set_margin(7);
             chat_box->append(*bubble);
 
-            Glib::signal_idle().connect_once([this]()
-            {
+            Glib::signal_idle().connect_once([this]() {
                 auto adj = chat_scrolled->get_vadjustment();
                 adj->set_value(adj->get_upper() - adj->get_page_size());
             });
         }
     });
-    dispatcher.emit();
+    return;
+}
+
+inline void Chat::message_buffer () {
+    if ( !message_entry->get_text_length() ) return;
+    session->add_to_buffer(message_entry->get_text());
+    message_entry->delete_text(0, -1);
 };

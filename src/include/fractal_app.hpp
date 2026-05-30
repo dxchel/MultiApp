@@ -1,5 +1,4 @@
-#ifndef _FRACTAL_APP_
-#define _FRACTAL_APP_
+#pragma once
 
 #include<any>
 
@@ -42,8 +41,7 @@ int julia(double, double, int, const std::vector<std::any> = {-0.5125, 0.5213});
  * Gtk::DrawingArea implementing class that contains important functions
  * for drawing fractals.
  */
-class FractalArea : public Gtk::DrawingArea
-{
+class FractalArea : public Gtk::DrawingArea {
     friend class FractalTest;
     friend class FractalTest_FractalFunctionalTest_Test;
 
@@ -143,8 +141,7 @@ public:
  * Gtk::Box implementing class that contains important Gtk Widgets
  * for loading, displaying and saving fractals.
  */
-class FractalBox : public Gtk::Box
-{
+class FractalBox : public Gtk::Box {
     friend class FractalTest;
     friend class FractalTest_FractalFunctionalTest_Test;
 
@@ -178,5 +175,3 @@ public:
      */
     FractalBox();
 };
-
-#endif

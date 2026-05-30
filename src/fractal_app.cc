@@ -30,22 +30,15 @@ int julia(double cr, double ci, int max_iter, const std::vector<std::any> consts
     return max_iter;
 }
 
-void FractalArea::set_selection(const std::string new_selection)
-    { selection = new_selection; queue_draw(); }
-void FractalArea::set_max_iter(int iter)
-    { max_iter = iter; queue_draw(); }
-void FractalArea::set_consts(double cr, double ci)
-    { const_r = cr; const_i = ci; queue_draw(); }
+void FractalArea::set_selection(const std::string new_selection) { selection = new_selection; queue_draw(); }
+void FractalArea::set_max_iter(int iter) { max_iter = iter; queue_draw(); }
+void FractalArea::set_consts(double cr, double ci) { const_r = cr; const_i = ci; queue_draw(); }
 
-void FractalArea::set_r(double min, double max)
-    { r_lower_level = min/100; r_upper_level = max/100; queue_draw(); }
-void FractalArea::set_g(double min, double max)
-    { g_lower_level = min/100; g_upper_level = max/100; queue_draw(); }
-void FractalArea::set_b(double min, double max)
-    { b_lower_level = min/100; b_upper_level = max/100; queue_draw(); }
+void FractalArea::set_r(double min, double max) { r_lower_level = min/100; r_upper_level = max/100; queue_draw(); }
+void FractalArea::set_g(double min, double max) { g_lower_level = min/100; g_upper_level = max/100; queue_draw(); }
+void FractalArea::set_b(double min, double max) { b_lower_level = min/100; b_upper_level = max/100; queue_draw(); }
 
-void FractalArea::reset()
-    { cx = -0.5; cy = 0.0; range = 3.5; queue_draw(); }
+void FractalArea::reset() { cx = -0.5; cy = 0.0; range = 3.5; queue_draw(); }
 
 void FractalArea::iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b) {
     if (iter == max_iter) { r = g = b = 0; return; }
@@ -66,11 +59,8 @@ FractalArea::FractalArea(const std::string selection) : Gtk::DrawingArea(),
     cx{-0.5}, cy{0}, range{3.5},
     drag_start_cx{}, drag_start_cy{},
     surface{}, selection{selection},
-    fractal_map{
-        { "Julia", julia },
-        { "Mandelbrot", mandelbrot }
-    }
-{
+    fractal_map{ { "Julia", julia }, { "Mandelbrot", mandelbrot }
+    } {
     set_expand(true);
     set_draw_func(sigc::mem_fun(*this, &FractalArea::on_draw));
 
@@ -89,8 +79,7 @@ FractalArea::FractalArea(const std::string selection) : Gtk::DrawingArea(),
 
     auto scroll {Gtk::EventControllerScroll::create()};
     scroll->set_flags(Gtk::EventControllerScroll::Flags::VERTICAL);
-    scroll->signal_scroll().connect([this](double, double dy) -> bool
-    {
+    scroll->signal_scroll().connect([this](double, double dy) -> bool {
         range *= (dy < 0) ? 0.8 : 1.25;
         queue_draw();
         return true;
@@ -98,8 +87,7 @@ FractalArea::FractalArea(const std::string selection) : Gtk::DrawingArea(),
     add_controller(scroll);
 };
 
-void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
-{
+void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h) {
     const int NTHREADS {static_cast<int>(std::thread::hardware_concurrency())};
     std::vector<std::thread> threads;
 
@@ -109,13 +97,10 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
 
     uint8_t* surface_data {surface->get_data()};
 
-    auto render_band {[&](int y0, int y1)
-    {
+    auto render_band {[&](int y0, int y1) {
         int current_pixel {4*w*y0};
-        for (int y{y0}; y < y1; ++y)
-        {
-            for (int x{0}; x < w; ++x, current_pixel += 4)
-            {
+        for (int y{y0}; y < y1; ++y) {
+            for (int x{0}; x < w; ++x, current_pixel += 4) {
                 double cr {cx + (x - w/2.0)*range/w},
                     ci {cy - (y - h/2.0)*range/w};
                 int iter {fractal_map.at(selection)(cr, ci, max_iter, {const_r, const_i})};
@@ -125,8 +110,7 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
     }};
 
     int band {h/NTHREADS};
-    for (int t{}; t < NTHREADS; ++t)
-    {
+    for (int t{}; t < NTHREADS; ++t) {
         int y0 {t*band},
             y1 {(t == NTHREADS-1) ? h : y0 + band};
         threads.emplace_back(render_band, y0, y1);
@@ -156,26 +140,18 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
 }
 
 
-FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
-{
+FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
-    try
-    {
+    try {
         ref_builder->add_from_file("res/gtk/fractal_app.ui");
-    }
-    catch(const Glib::FileError& ex)
-    {
+    } catch(const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << std::endl;
         throw ex;
-    }
-    catch(const Glib::MarkupError& ex)
-    {
+    } catch(const Glib::MarkupError& ex) {
         std::cerr << "MarkupError: " << ex.what() << std::endl;
         throw ex;
-    }
-    catch(const Gtk::BuilderError& ex)
-    {
+    } catch(const Gtk::BuilderError& ex) {
         std::cerr << "BuilderError: " << ex.what() << std::endl;
         throw ex;
     }
@@ -197,8 +173,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
         (
             [this](){ fractal_area->reset(); }
         );
-    if(save_button) [[likely]]
-    {
+    if(save_button) [[likely]] {
         save_button->signal_clicked().connect
         (
             [](){ std::cout << "Save button pressed!" << std::endl;}
@@ -222,8 +197,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
         );
 
     iter_scale = ref_builder->get_widget<Gtk::Scale>("iter_scale");
-    if(iter_scale) [[likely]]
-    {
+    if(iter_scale) [[likely]] {
         iter_scale->signal_value_changed().connect([this]{
             fractal_area->set_max_iter(static_cast<int>(iter_scale->get_value()));
         });
@@ -231,8 +205,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
     }
     r_min_scale = ref_builder->get_widget<Gtk::Scale>("r_scale_min");
     r_max_scale = ref_builder->get_widget<Gtk::Scale>("r_scale_max");
-    if(r_min_scale && r_max_scale) [[likely]]
-    {
+    if(r_min_scale && r_max_scale) [[likely]] {
         auto r_change {[this] {
                 fractal_area->set_r(r_min_scale->get_value(), r_max_scale->get_value());
             }};
@@ -242,8 +215,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
     }
     g_min_scale = ref_builder->get_widget<Gtk::Scale>("g_scale_min");
     g_max_scale = ref_builder->get_widget<Gtk::Scale>("g_scale_max");
-    if(g_min_scale && g_max_scale) [[likely]]
-    {
+    if(g_min_scale && g_max_scale) [[likely]] {
         auto g_change {[this] {
                 fractal_area->set_g(g_min_scale->get_value(), g_max_scale->get_value());
             }};
@@ -253,8 +225,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
     }
     b_min_scale = ref_builder->get_widget<Gtk::Scale>("b_scale_min");
     b_max_scale = ref_builder->get_widget<Gtk::Scale>("b_scale_max");
-    if(b_min_scale && b_max_scale) [[likely]]
-    {
+    if(b_min_scale && b_max_scale) [[likely]] {
         auto b_change {[this] {
                 fractal_area->set_b(b_min_scale->get_value(), b_max_scale->get_value());
             }};
@@ -264,8 +235,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL)
     }
     const_r_scale = ref_builder->get_widget<Gtk::Scale>("const_r_scale");
     const_i_scale = ref_builder->get_widget<Gtk::Scale>("const_i_scale");
-    if(const_r_scale && const_i_scale) [[likely]]
-    {
+    if(const_r_scale && const_i_scale) [[likely]] {
         auto consts_change {[this] {
                 fractal_area->set_consts(const_r_scale->get_value(), const_i_scale->get_value());
             }};

@@ -18,8 +18,7 @@ FractalTest::FractalTest() : fractal (Gtk::manage(new FractalBox())),
     b_min_scale{fractal->b_min_scale}, b_max_scale{fractal->b_max_scale},
     selection{fractal->selection} {};
 
-TEST_F(FractalTest, FractalStructuralTest)
-{
+TEST_F(FractalTest, FractalStructuralTest) {
     ASSERT_THAT(fractal, ::testing::NotNull());
     auto menu_t {dynamic_cast<Gtk::Box *>(fractal->get_first_child())};
     ASSERT_THAT(menu_t, ::testing::NotNull());
@@ -75,8 +74,7 @@ TEST_F(FractalTest, FractalStructuralTest)
     ASSERT_THAT(level->get_visible(), ::testing::Eq(false));
 }
 
-TEST_F(FractalTest, FractalFunctionalTest)
-{
+TEST_F(FractalTest, FractalFunctionalTest) {
     ASSERT_THAT(fractal_area->fractal_map.at("Mandelbrot")(0, 0, 1024, {}), ::testing::Eq(1024));
     ASSERT_THAT(fractal_area->fractal_map.at("Mandelbrot")(2.5, 2.5, 1024, {}), ::testing::Eq(0));
     ASSERT_THAT(fractal_area->fractal_map.at("Mandelbrot")(-0.75, 0.2, 1024, {}), ::testing::Eq(16));
@@ -115,8 +113,7 @@ TEST_F(FractalTest, FractalFunctionalTest)
     ASSERT_THAT(fractal_area->const_i, ::testing::Eq(c_i_t));
     std::uniform_int_distribution<int> dist_string(0, 1);
     std::vector<std::string> options {"Mandelbrot", "Julia"};
-    for (int i{}; i < 7; ++i)
-    {
+    for (int i{}; i < 7; ++i) {
         int selection_t{dist_string(gen)};
         fractal_area->set_selection(options[selection_t]);
         ASSERT_THAT(fractal_area->selection, ::testing::Eq(options[selection_t]));

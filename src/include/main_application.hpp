@@ -1,5 +1,4 @@
-#ifndef _MAIN_WINDOW_
-#define _MAIN_WINDOW_
+#pragma once
 
 #include <gtkmm.h>
 
@@ -10,8 +9,7 @@
  * Gtk::Application that initializes a window containing needed
  * Widgets for containing core apps in the project and running functions.
  */
-class MainApplication : public Gtk::Application
-{
+class MainApplication : public Gtk::Application {
     friend class MainApplicationTest;
     friend class MainApplicationTest_MainApplicationStructureTest_Test;
 
@@ -49,5 +47,3 @@ public:
     static Glib::RefPtr<MainApplication> create();
     Gtk::Label *status_label{};
 };
-
-#endif
