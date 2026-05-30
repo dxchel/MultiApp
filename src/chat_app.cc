@@ -14,7 +14,7 @@ Session::Session(const std::string &host, unsigned port) :
     send_timer (std::make_unique<asio::steady_timer>(ioc)),
     socket     (ioc) {
     if ( port > 65535 ) {
-        std::cerr << "Port out of bounds (0-65535)" << std::endl;
+        std::cerr << "Port out of bounds (0-65535)\n";
         throw std::out_of_range("Port out of bounds (0-65535)");
     }
     send_timer->expires_at(asio::steady_timer::time_point::min());
@@ -26,14 +26,14 @@ Session::Session(const std::string &host, unsigned port) :
     auto endpoints = resolver.resolve(host, std::to_string(port), ec);
     if (ec) {
         std::cerr << "[error] resolve(): " << ec.message()
-                  << std::endl << "Is the server running?" << std::endl;
+                  << "\nIs the server running?\n";
         throw std::runtime_error("Failed to resolve host");
     }
 
     asio::connect(socket, endpoints, ec);
     if (ec) {
         std::cerr << "[error] connect(): " << ec.message()
-                  << std::endl << "Is the server running?" << std::endl;
+                  << "\nIs the server running?\n";
         throw std::runtime_error("Failed to connect to server");
     }
 
@@ -71,7 +71,7 @@ awaitable<void> Session::sender(tcp::socket& socket) {
             send_timer->expires_at(asio::steady_timer::time_point::min());
         }
     } catch (const std::exception&) {
-        std::cout << std::endl << "[disconnected sender from server due to exception]" << std::endl;
+        std::cout << "\n[disconnected sender from server due to exception]\n";
     }
 
     if ( socket.is_open() ) socket.close();
@@ -93,7 +93,8 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
             buf.consume(n);
 
             // Strip \r\n and make Glib valid
-            while (!line.empty() && (line[line.size() - 1] == '\n' || line[line.size() - 1] == '\r'))
+            while (!line.empty() && (line[line.size() - 1] == '\n'
+                || line[line.size() - 1] == '\r'))
                 line.erase(line.size() - 1);
             if ( !line.size() ) continue;
             line.make_valid(); {
@@ -103,7 +104,7 @@ awaitable<void> Session::receiver(tcp::socket& socket) {
             poster();
         }
     } catch (const std::exception&) {
-        std::cout << std::endl << "[disconnected receiver from server due to exception]" << std::endl;
+        std::cout << "\n[disconnected receiver from server due to exception]\n";
     }
 
     if ( socket.is_open() ) socket.close();
@@ -207,7 +208,7 @@ awaitable<void> Server::client_receiver(std::shared_ptr<Client> client) {
     }
     asio::error_code ec;
     if (client->socket.is_open()) client->socket.close(ec);
-    { clients.remove(client); }
+    clients.remove(client);
     broadcast(client->nickname + " disconnected!!!\n");
 }
 
@@ -242,13 +243,13 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     try {
         ref_builder->add_from_file("res/gtk/chat_app.ui");
     } catch(const Glib::FileError& ex) {
-        std::cerr << "FileError: " << ex.what() << std::endl;
+        std::cerr << "FileError: " << ex.what() << "\n";
         throw ex;
     } catch(const Glib::MarkupError& ex) {
-        std::cerr << "MarkupError: " << ex.what() << std::endl;
+        std::cerr << "MarkupError: " << ex.what() << "\n";
         throw ex;
     } catch(const Gtk::BuilderError& ex) {
-        std::cerr << "BuilderError: " << ex.what() << std::endl;
+        std::cerr << "BuilderError: " << ex.what() << "\n";
         throw ex;
     }
 
@@ -302,7 +303,7 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
 void Chat::on_realize() {
     Gtk::Box::on_realize();
     status_label = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
-    if (!status_label) std::cout << "Status label not found" << std::endl;
+    if (!status_label) std::cout << "Status label not found\n";
     if (status_label)
         status_label->set_text("Welcome to the LAN Chat!");
 }
@@ -335,7 +336,7 @@ inline void Chat::session_connection() {
         session = nullptr;
         // If not localhost, give up
         if ( !(host == std::string(LOCALHOST)) ) {
-            std::cerr << "[fatal] while creating session: " << e.what() << std::endl;
+            std::cerr << "[fatal] while creating session: " << e.what() << "\n";
             status_label->set_label("Something went wrong starting client, check cerr");
             return;
         }
@@ -346,7 +347,7 @@ inline void Chat::session_connection() {
             session = std::make_unique<Session>(LOCALHOST, port);
             status_label->set_label("Hosting on port " + std::to_string(port) + " — waiting for peers!");
         } catch (const std::exception& e2) {
-            std::cerr << "[fatal] could not start server: " << e2.what() << std::endl;
+            std::cerr << "[fatal] could not start server: " << e2.what() << "\n";
             status_label->set_label("Could not start server, check cerr");
             server  = nullptr;
             session = nullptr;
@@ -361,8 +362,9 @@ inline void Chat::session_connection() {
     footer_box->set_visible(true);
     message_entry->grab_focus();
 
-    session->set_disconnecter([this]()
-    { Glib::signal_idle().connect_once([this]() { session_connection(); }); });
+    session->set_disconnecter([this]() {
+        Glib::signal_idle().connect_once([this]() { session_connection(); });
+    });
     session->set_poster([this]() { dispatcher->emit(); });
 
     dispatcher = std::make_unique<Glib::Dispatcher>();
@@ -372,7 +374,7 @@ inline void Chat::session_connection() {
             std::string message{std::move(session->message_queue.front())};
             session->message_queue.pop_front();
 
-            std::cout << message << std::endl;
+            std::cout << message << "\n";
 
             auto bubble {Gtk::manage(new Gtk::Label())};
             bubble->set_css_classes({ "bubble" });
