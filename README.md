@@ -2,7 +2,7 @@
 
 Small GUI MultiApp project for showcasing and learning C++ made on Linux (Not sure if WebKit is usable in Windows anymore).
 
-This App will evolve with time, at the moment the plan is to have a general layout and testing for different GUI apps living inside the same Window for learning how to use Gtkmm4 and Webkit.
+This App will evolve with time, at the moment the plan is to have a general layout and testing for different GUI apps living inside the same Window for learning how to use Gtkmm4 and Webkit. it is not meant to have a goal, it's used to learn and find new ways of coding.
 
 In the future it should have apps that work using SQL, SDL and even web requests.
 
@@ -77,15 +77,20 @@ It removes the build/, build_tests/, multiapp.exe and multiapp_tests.exe folders
 ### 🐋 Docker
 
 You can also run with docker!
-Just run to create a local image
+Just run ```sudo docker build -t multiapp .``` to create a local image.
+Note: It can't currently show the web browser or Gtk4 icons.
 
 And then run the container using:
 
-- Linux: Run ``` xhost +local:docker ``` create the image using ```sudo docker build -t multiapp .``` and run with  ```sudo docker run -it --rm -e DISPLAY=$DISPLAY --network host -v /tmp/.X11-unix:/tmp/.X11-unix multiapp```
+- Linux: Run ``` xhost +local:docker ```
+then run with ```sudo docker run -it --rm -e DISPLAY=$DISPLAY --network host -v /tmp/.X11-unix:/tmp/.X11-unix multiapp```
 
-- Windows: Use ```sudo docker build -t multiapp .``` and run with ``` docker run -it -e DISPLAY=$DISPLAY --network host -v /mnt/host/wslg/.X11-unix:/tmp/.X11-unix -v /mnt/host/wslg:/mnt/host/wslg multiapp ```
+- Windows: Run with
+``` docker run -it -e DISPLAY=$DISPLAY --network host -v /mnt/host/wslg/.X11-unix:/tmp/.X11-unix -v /mnt/host/wslg:/mnt/host/wslg multiapp ```
 
-- Mac: ``` Use xquartz to allow the connection ```, then run ``` xhost +local:docker ``` finally create the image using ```sudo docker build -t multiapp .``` and run with ```sudo docker run -it --rm -e DISPLAY=$DISPLAY --network host -v /tmp/.X11-unix:/tmp/.X11-unix multiapp```
+- Mac: ``` Use xquartz to allow the connection ```,
+then run ``` xhost +local:docker ```
+and run with ```sudo docker run -it --rm -e DISPLAY=$DISPLAY --network host -v /tmp/.X11-unix:/tmp/.X11-unix multiapp```
 
 ## 📷 Screenshots
 

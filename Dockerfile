@@ -7,7 +7,7 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install base dependencies, build tools, GTKmm 4.0, WebKitGTK 6.0, and X11 forwarding
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     # Build essentials
     build-essential \
     pkg-config \
@@ -17,12 +17,8 @@ RUN apt-get update && apt-get install -y \
     libwebkitgtk-6.0-dev \
     libasio-dev \
     libgtest-dev \
-    libx11-dev \
-    fonts-dejavu-core \
-    fonts-font-awesome \
     fontconfig \
     locales \
-    librsvg2-common \
     git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
@@ -40,7 +36,7 @@ COPY . /app/
 
 # Build the application
 RUN make clean || true
-RUN make
+RUN make release
 
 # Set display environment variable for X11 forwarding
 ENV DISPLAY=:0
