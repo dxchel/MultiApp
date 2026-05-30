@@ -18,6 +18,7 @@ In the future it should have apps that work using SQL, SDL and even web requests
   - [Roadmap](#️-roadmap)
   - [Requirements](#️-requirements)
   - [Build and Run](#-build-and-run)
+    - [Docker](#-docker)
   - [Screenshots](#-screenshots)
 
 ## 🧬 Project Structure
@@ -50,12 +51,14 @@ In Arch based OS:
 - gtkmm-4.0
 - webkitgtk-6.0
 - asio
+- gtest
 
 In Ubuntu/Debian based OS:
 
 - libgtkmm-4.0-dev
 - libwebkitgtk-6.0-dev
 - libasio-dev
+- libgtest-dev
 
 ## 🔨 Build and run
 
@@ -70,6 +73,19 @@ It creates a multiapp_tests.exe executable that uses the [GTEST](https://github.
 For cleaning building objects and executables, run:
 ``` make clean ```
 It removes the build/, build_tests/, multiapp.exe and multiapp_tests.exe folders and files.
+
+### 🐋 Docker
+
+You can also run with docker!
+Just run to create a local image
+
+And then run the container using:
+
+- Linux: Run ``` xhost +local:docker ``` create the image using ```sudo docker build -t multiapp .``` and run with  ```sudo docker run -it --rm -e DISPLAY=$DISPLAY --network host -v /tmp/.X11-unix:/tmp/.X11-unix multiapp```
+
+- Windows: Use ```sudo docker build -t multiapp .``` and run with ``` docker run -it -e DISPLAY=$DISPLAY --network host -v /mnt/host/wslg/.X11-unix:/tmp/.X11-unix -v /mnt/host/wslg:/mnt/host/wslg multiapp ```
+
+- Mac: ``` Use xquartz to allow the connection ```, then run ``` xhost +local:docker ``` finally create the image using ```sudo docker build -t multiapp .``` and run with ```sudo docker run -it --rm -e DISPLAY=$DISPLAY --network host -v /tmp/.X11-unix:/tmp/.X11-unix multiapp```
 
 ## 📷 Screenshots
 
