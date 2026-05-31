@@ -25,31 +25,14 @@ constexpr const char *LOCALHOST    {"127.0.0.1"};
  * It has a poster and disconnecter function so it can interact with GUI.
  */
 class Session {
-    std::string send_buf;
-    std::string host;
-    unsigned    port;
-
-    asio::io_context                    ioc;
-    std::unique_ptr<asio::steady_timer> send_timer;
-    std::thread                         ioc_thread;
-    tcp::socket                         socket;
-
-    std::function<void(void)> poster;
-    std::function<void(void)> disconnecter;
-
 public:
-    std::deque<std::string> message_queue;
-    std::mutex              queue_mutex;
+    std::deque<std::string> receiver_queue;
+    std::mutex              receiver_mutex;
+    std::string             sender_buf;
+    std::mutex              sender_mutex;
 
-    /**
-     * @brief Connects the session as client and starts the asio thread.
-     *
-     * @throws out_of_range if the port is out of range.
-     * @throws RuntimeError on connection failure.
-     */
-    Session(const std::string&, unsigned);
-
-    /* Stops asio io context, joins asio thread and deletes sockets. */
+    /* Deleted default constructor and destructor as it's not supposed to be used without Client or Server. */
+    Session();
     ~Session() noexcept;
 
 
@@ -89,7 +72,33 @@ public:
      *
      * @param[in] message: Message to be buffered.
      */
-    void add_to_buffer(std::string);
+    void add_to_send_buffer(std::string);
+
+    virtual void process_message(std::string);
+
+protected:
+    std::string host;
+    unsigned    port;
+
+    asio::io_context                    ioc;
+    std::unique_ptr<asio::steady_timer> send_timer;
+    std::thread                         ioc_thread;
+
+    std::function<void(void)> poster;
+    std::function<void(void)> disconnecter;
+
+};
+
+
+class Client : public Session {
+    tcp::socket socket;
+
+    /* Queue line for the sender, then wake their sender. */
+    void send_message(const std::string&);
+
+public:
+    explicit Client(const std::string &host, unsigned port);
+    ~Client() noexcept;
 };
 
 
@@ -100,41 +109,26 @@ public:
  * clients, and echoes it back to the sender tagged with "(you)".
  * Runs its own ioc on a dedicated thread — same pattern as Session.
  */
-class Server {
+class Server : public Session {
     /* Client struct containing socket, timer, buffer and nickname for each client. */
     struct Client {
+        inline static unsigned current_id{};
+
         tcp::socket        socket;
         asio::steady_timer timer;
         std::string        nickname{};
         std::string        fingerprint{};
         std::string        buf{};
 
-        explicit Client(asio::io_context&, unsigned);
+        explicit Client(asio::io_context&);
     };
 
-    asio::io_context ioc;
     tcp::acceptor    acceptor;
-    std::thread      ioc_thread{};
-    unsigned         current_id{};
 
     std::list<std::shared_ptr<Client>> clients{};
 
     /* Queue line for every client except origin, then wake their sender. */
     void broadcast(const std::string&, Client* = nullptr);
-
-    /**
-     * @brief Sender function to run so the session sends data.
-     *
-     * @param[in] client: Client struct to send data to.
-     */
-    awaitable<void> client_sender(std::shared_ptr<Client>);
-
-    /**
-     * @brief Receiver function to run so the session awaits for data.
-     *
-     * @param[in] client: Client struct to receive data from.
-     */
-    awaitable<void> client_receiver(std::shared_ptr<Client>);
 
     /* Accept loop function to run so the session accepts new clients. */
     awaitable<void> accept_loop();
