@@ -8,85 +8,62 @@
 #include <thread>
 
 
-Session::Session() : send_timer (std::make_unique<asio::steady_timer>(ioc)) {}
+
+Connection::Connection(asio::io_context& ioc) :
+    socket   (ioc),
+    send_timer    (ioc),
+    nickname ("User" + std::to_string(++current_id))
+    { send_timer.expires_at(asio::steady_timer::time_point::min()); }
+
+void Connection::add_to_send_buffer(std::string message) {
+    send_buffer.append(message + "\n");
+    send_timer.cancel();
+    return;
+}
+
 
 Session::~Session() noexcept {
     if ( !ioc.stopped() ) ioc.stop();
     if ( ioc_thread.joinable() ) ioc_thread.join();
-    if ( disconnecter ) disconnecter();
-    std::cout << "[" << typeid(this).name() << "] stopped\n";
+    std::cout << "[Server] stopped\n";
 }
 
-awaitable<void> Session::sender(tcp::socket& socket) {
+awaitable<void> Session::sender(std::shared_ptr<Connection> connection) {
     try {
         while (true) {
-            // Wait until there's something to send
-            while (sender_buf.empty()) {
+            while (true) {
+                if (!connection->send_buffer.empty()) break;
                 asio::error_code ec;
-                co_await send_timer->async_wait(
-                    asio::redirect_error(use_awaitable, ec));
+                co_await connection->send_timer.async_wait(asio::redirect_error(use_awaitable, ec));
                 if (ec && ec != asio::error::operation_aborted) co_return;
             }
-
             std::string data;
-            {
-                std::lock_guard<std::mutex> lock(sender_mutex);
-                std::swap(data, sender_buf);
-            }
-
-            co_await asio::async_write(socket, asio::buffer(data), use_awaitable);
-
-            // Reset timer so we wait again next iteration
-            send_timer->expires_at(asio::steady_timer::time_point::min());
+            std::swap(data, connection->send_buffer);
+            connection->send_timer.expires_at(asio::steady_timer::time_point::min());
+            co_await asio::async_write(connection->socket, asio::buffer(data), use_awaitable);
         }
     } catch (const std::exception& e) {
-        std::cout << "[" << typeid(this).name() << "] sender error: " << e.what() << "\n";
+        std::cout << "[Server] sender error: " << e.what() << "\n";
     }
-
-    if ( socket.is_open() ) socket.close();
-    if ( !ioc.stopped() ) ioc.stop();
 }
 
-awaitable<void> Session::receiver(tcp::socket& socket) {
+awaitable<void> Session::receiver(std::shared_ptr<Connection> connection) {
     try {
         asio::streambuf buf;
-
         while (true) {
-            // Receive until a '\n'
-            std::size_t n = co_await asio::async_read_until(
-                socket, buf, '\n', use_awaitable);
+            std::size_t n = co_await asio::async_read_until(connection->socket, buf, '\n', use_awaitable);
 
-            Glib::ustring line(
+            std::string line(
                 asio::buffers_begin(buf.data()),
-                asio::buffers_begin(buf.data()) + static_cast<std::ptrdiff_t>(n));
+                asio::buffers_begin(buf.data()) + static_cast<std::ptrdiff_t>(n)
+            );
             buf.consume(n);
 
-            // Strip \r\n and make Glib valid
-            while (!line.empty() && (line[line.size() - 1] == '\n'
-                || line[line.size() - 1] == '\r'))
-                line.erase(line.size() - 1);
-            if ( !line.size() ) continue;
-            line.make_valid();
-            process_message(line.raw());
+            process_message(line, connection);
         }
     } catch (const std::exception& e) {
-        std::cout << "[" << typeid(this).name() << "] receiver error: " << e.what() << "\n";
+        std::cout << "[Server] " << connection->nickname << " disconnected: " << e.what() << "\n";
     }
-
-    if ( socket.is_open() ) socket.close();
-    if ( !ioc.stopped() ) ioc.stop();
-}
-
-void Session::add_to_send_buffer(std::string message) {
-    sender_buf.append(message + "\n");
-    send_timer->cancel();
-    return;
-}
-
-void Session::process_message(std::string message) {
-    std::lock_guard<std::mutex> lock(receiver_mutex);
-    receiver_queue.push_back(message.c_str());
-    if (poster) poster();
 }
 
 void Session::set_poster(std::function<void(void)> message_poster)
@@ -97,7 +74,8 @@ void Session::set_disconnecter(std::function<void(void)> new_disconnecter)
 
 Client::Client(const std::string &host, unsigned port) :
     Session::Session(),
-    socket (ioc) {
+    connection (std::make_shared<Connection>(ioc)) {
+    connection->nickname = "Server";
     this->host = host;
     this->port = port;
 
@@ -105,7 +83,7 @@ Client::Client(const std::string &host, unsigned port) :
         std::cerr << "Port out of bounds (0-65535)\n";
         throw std::out_of_range("Port out of bounds (0-65535)");
     }
-    send_timer->expires_at(asio::steady_timer::time_point::min());
+    connection->send_timer.expires_at(asio::steady_timer::time_point::min());
     tcp::resolver resolver(ioc);
 
     std::cout << "Connecting to " << host << ":" << port << "...\n";
@@ -118,7 +96,7 @@ Client::Client(const std::string &host, unsigned port) :
         throw std::runtime_error("Failed to resolve host");
     }
 
-    asio::connect(socket, endpoints, ec);
+    asio::connect(connection->socket, endpoints, ec);
     if (ec) {
         std::cerr << "[error] connect(): " << ec.message()
                   << "\nIs the server running?\n";
@@ -126,126 +104,125 @@ Client::Client(const std::string &host, unsigned port) :
     }
 
     // Spawn receiver and sender
-    asio::co_spawn(ioc, receiver(socket), asio::detached);
-    asio::co_spawn(ioc, sender(socket), asio::detached);
+    asio::co_spawn(ioc, receiver(connection), asio::detached);
+    asio::co_spawn(ioc, sender(connection), asio::detached);
 
     // Run the event loop in separate thread until ioc.stop() is called
     ioc_thread = std::thread([this](){ ioc.run(); });
 }
 
+
 Client::~Client() noexcept {
-    if ( socket.is_open() ) socket.close();
-    Session::~Session();
+    if ( connection->socket.is_open() )
+        connection->socket.close();
 }
 
-Server::Client::Client(asio::io_context& ioc) :
-    socket   (ioc),
-    timer    (ioc),
-    nickname ("User" + std::to_string(++current_id))
-    { timer.expires_at(asio::steady_timer::time_point::min()); }
+awaitable<void> Client::receiver(std::shared_ptr<Connection> connection) {
+    co_await Session::receiver(connection);
+    if ( connection->socket.is_open() )
+        connection->socket.close();
+    if (disconnecter) disconnecter();
+}
+
+void Client::broadcast(const std::string& message, std::shared_ptr<Connection> origin) {
+    (void) origin;
+    connection->send_buffer += message + "\n";
+    connection->send_timer.cancel();
+}
+
+void Client::process_message(std::string &message, std::shared_ptr<Connection> origin) {
+    while (!message.empty() && (message[message.size()-1] == '\n' || message[message.size()-1] == '\r'))
+        message.erase(message.size()-1);
+
+    if ( origin ) {
+        std::lock_guard<std::mutex> lock(receive_mutex);
+        receive_queue.push_back(message);
+        if (poster) poster();
+    }
+    else {
+        broadcast(message, origin);
+    }
+}
+
 
 Server::Server(unsigned port) : Session::Session(),
     acceptor (tcp::acceptor(ioc, tcp::endpoint(tcp::v4(), static_cast<asio::ip::port_type>(port)))) {
+    host = "Server";
     asio::co_spawn(ioc, accept_loop(), asio::detached);
     ioc_thread = std::thread([this](){ ioc.run(); });
-    std::cout << "[server] listening on port " << port << "\n";
+    std::cout << "[Server] listening on port " << port << "\n";
 }
 
 Server::~Server() noexcept {
-    asio::post(ioc, [this]() {
-        asio::error_code ec;
-        acceptor.close(ec);
-        for (auto& client : clients) {
-            if (client->socket.is_open()) client->socket.close(ec);
-            client->timer.cancel(ec);
-        }
-    });
-    Session::~Session();
+    acceptor.close();
+    for (auto& connection : connections) {
+        if (connection->socket.is_open())
+            connection->socket.close();
+        connection->send_timer.cancel();
+    }
+}
+
+awaitable<void> Server::receiver(std::shared_ptr<Connection> connection) {
+    co_await Session::receiver(connection);
+    if ( connection->socket.is_open() )
+        connection->socket.close();
+    connections.remove(connection);
+    std::string farewell{connection->nickname + " has left the chat!!!"};
+    process_message(farewell);
 }
 
 awaitable<void> Server::accept_loop() {
     while (true) {
-        auto client = std::make_shared<Client>(ioc);
+        auto connection = std::make_shared<Connection>(ioc);
         asio::error_code ec;
-        co_await acceptor.async_accept(client->socket, asio::redirect_error(use_awaitable, ec));
+        co_await acceptor.async_accept(connection->socket, asio::redirect_error(use_awaitable, ec));
         if (ec) {
             std::cout << "[server] accept loop ending: " << ec.message() << "\n";
             co_return;
         }
 
         try {
-            auto ep = client->socket.remote_endpoint();
-            client->fingerprint = ep.address().to_string() + ":" + std::to_string(ep.port());
-        } catch (...) { client->fingerprint = "unknown"; }
-        std::cout << "[server] new client: " << client->fingerprint << "\n";
+            auto ep = connection->socket.remote_endpoint();
+            connection->fingerprint = ep.address().to_string() + ":" + std::to_string(ep.port());
+        } catch (...) { connection->fingerprint = "unknown"; }
+        std::cout << "[server] new client: " << connection->nickname << " (" << connection->fingerprint << ")\n";
 
-        clients.push_back(client);
-        broadcast(client->nickname + " connected!!!\n", client.get());
+        std::string message {connection->nickname + " says Hi!!!\n"};
+        process_message(message);
 
-        asio::co_spawn(ioc, client_receiver(client), asio::detached);
-        asio::co_spawn(ioc, client_sender(client),   asio::detached);
+        asio::co_spawn(ioc, receiver(connection), asio::detached);
+        asio::co_spawn(ioc, sender(connection),   asio::detached);
+
+        connections.push_back(connection);
     }
 }
 
-void Server::broadcast(const std::string& line, Client* origin) {
-    for (auto& client : clients) {
-        if (client.get() == origin) continue;
-        client->buf += line;
-        client->timer.cancel();
+void Server::broadcast(const std::string& message, std::shared_ptr<Connection> origin) {
+    for (auto& connection : connections) {
+        std::lock_guard<std::mutex> send_lock(connection->send_mutex);
+        if ( !origin )
+            connection->send_buffer += message + "\n";
+        else if ( connection->fingerprint == origin->fingerprint )
+            connection->send_buffer += "(You): " + message + "\n";
+        else
+            connection->send_buffer += "(" + origin->nickname + "): " + message + "\n";
+        connection->send_timer.cancel();
     }
 }
 
-awaitable<void> Server::client_sender(std::shared_ptr<Client> client) {
-    try {
-        while (true) {
-            while (true) {
-                if (!client->buf.empty()) break;
-                asio::error_code ec;
-                co_await client->timer.async_wait(asio::redirect_error(use_awaitable, ec));
-                if (ec && ec != asio::error::operation_aborted) co_return;
-            }
-            std::string data;
-            std::swap(data, client->buf);
-            client->timer.expires_at(asio::steady_timer::time_point::min());
-            co_await asio::async_write(client->socket, asio::buffer(data), use_awaitable);
-        }
-    } catch (const std::exception& e) {
-        std::cout << "[server] sender error: " << e.what() << "\n";
-    }
-    asio::error_code ec;
-    if (client->socket.is_open()) client->socket.close(ec);
-}
+void Server::process_message(std::string &message, std::shared_ptr<Connection> connection) {
+    (void) connection;
+    while (!message.empty() && (message[message.size()-1] == '\n' || message[message.size()-1] == '\r'))
+        message.erase(message.size()-1);
 
-awaitable<void> Server::client_receiver(std::shared_ptr<Client> client) {
-    try {
-        asio::streambuf buf;
-        while (true) {
-            std::size_t n = co_await asio::async_read_until(client->socket, buf, '\n', use_awaitable);
+    broadcast(message, connection);
 
-            Glib::ustring line(
-                asio::buffers_begin(buf.data()),
-                asio::buffers_begin(buf.data()) + static_cast<std::ptrdiff_t>(n));
-            buf.consume(n);
+    if ( connection )
+        message = "(" + connection->nickname + "): " + message;
 
-            while (!line.empty() && (line[line.size()-1] == '\n' || line[line.size()-1] == '\r'))
-                line.erase(line.size()-1);
-            if (line.empty()) continue;
-            line.make_valid();
-
-            std::string message { line.c_str() };
-            std::cout << "[server] " << client->nickname << ": " << message << "\n";
-
-            client->buf += "(You): " + message + "\n";
-            client->timer.cancel();
-            broadcast("(" + client->nickname + "): " + message + "\n", client.get());
-        }
-    } catch (const std::exception& e) {
-        std::cout << "[server] " << client->nickname << " disconnected: " << e.what() << "\n";
-    }
-    asio::error_code ec;
-    if (client->socket.is_open()) client->socket.close(ec);
-    clients.remove(client);
-    broadcast(client->nickname + " disconnected!!!\n");
+    std::lock_guard<std::mutex> lock(receive_mutex);
+    receive_queue.push_back(message);
+    if (poster) poster();
 }
 
 
@@ -315,24 +292,24 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
 void Chat::on_realize() {
     Gtk::Box::on_realize();
     status_label = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
-    if (!status_label) std::cout << "Status label not found\n";
     if (status_label)
         status_label->set_text("Welcome to the LAN Chat!");
+    else
+        std::cout << "Status label not found\n";
 }
 
 inline void Chat::session_connection() {
     // Disconnect if connected
     if (!connect_button->get_label().compare("Disconnect")) {
         session = nullptr;
-        server  = nullptr;
-        std::cout << "\n[disconnected from server due to user request]\n";
 
         connect_button->set_label("Connect");
         footer_box->set_visible(false);
         ip_entry->set_sensitive(true);
         port_entry->set_sensitive(true);
         home_button->set_sensitive(true);
-        status_label->set_label("Disconnected from server!");
+        if (status_label)
+            status_label->set_label("Disconnected!");
         return;
     }
 
@@ -342,26 +319,25 @@ inline void Chat::session_connection() {
 
     // Try to connect as client
     try {
-        session = std::make_unique<Session>(host, port);
+        session = std::make_unique<Client>(host, port);
         status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
     } catch (const std::exception& e) {
         session = nullptr;
         // If not localhost, give up
         if ( !(host == std::string(LOCALHOST)) ) {
             std::cerr << "[fatal] while creating session: " << e.what() << "\n";
-            status_label->set_label("Something went wrong starting client, check cerr");
+            if (status_label)
+                status_label->set_label("Something went wrong starting client, check cerr");
             return;
         }
-        // Localhost and no server found — become the server, then connect to ourselves
-        std::cout << "[info] no server on localhost, starting one...\n";
         try {
-            server  = std::make_unique<Server>(port);
-            session = std::make_unique<Session>(LOCALHOST, port);
-            status_label->set_label("Hosting on port " + std::to_string(port) + " — waiting for peers!");
+            session  = std::make_unique<Server>(port);
+            if (status_label)
+                status_label->set_label("Hosting on port " + std::to_string(port) + " — waiting for peers!");
         } catch (const std::exception& e2) {
             std::cerr << "[fatal] could not start server: " << e2.what() << "\n";
-            status_label->set_label("Could not start server, check cerr");
-            server  = nullptr;
+            if (status_label)
+                status_label->set_label("Could not start server, check cerr");
             session = nullptr;
             return;
         }
@@ -377,14 +353,12 @@ inline void Chat::session_connection() {
     session->set_disconnecter([this]() {
         Glib::signal_idle().connect_once([this]() { session_connection(); });
     });
-    session->set_poster([this]() { dispatcher->emit(); });
-
     dispatcher = std::make_unique<Glib::Dispatcher>();
     dispatcher->connect([this]() {
-        std::lock_guard<std::mutex> lock(session->receiver_mutex);
-        while (!session->receiver_queue.empty()) {
-            std::string message{std::move(session->receiver_queue.front())};
-            session->receiver_queue.pop_front();
+        std::lock_guard<std::mutex> lock(session->receive_mutex);
+        while (!session->receive_queue.empty()) {
+            std::string message{std::move(session->receive_queue.front())};
+            session->receive_queue.pop_front();
 
             std::cout << message << "\n";
 
@@ -400,7 +374,9 @@ inline void Chat::session_connection() {
                     bubble->add_css_class("others");
                 }
             }
-            bubble->set_text(std::move(message));
+            Glib::ustring valid_message{std::move(message)};
+            valid_message.make_valid();
+            bubble->set_text(std::move(valid_message));
             bubble->set_hexpand(true);
             bubble->set_vexpand(false);
             bubble->set_wrap(true);
@@ -413,11 +389,13 @@ inline void Chat::session_connection() {
             });
         }
     });
+    session->set_poster([this]() { dispatcher->emit(); });
     return;
 }
 
 inline void Chat::message_buffer () {
     if ( !message_entry->get_text_length() ) return;
-    session->add_to_send_buffer(message_entry->get_text());
+    std::string message{message_entry->get_text()};
+    session->process_message(message);
     message_entry->delete_text(0, -1);
 };

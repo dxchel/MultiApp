@@ -16,6 +16,32 @@ constexpr const char *DEFAULT_PORT {"1234"};
 constexpr const char *LOCALHOST    {"127.0.0.1"};
 
 
+
+/* Connection struct containing socket, timer, buffer and nickname for each client. */
+struct Connection {
+    inline static unsigned current_id{};
+
+    tcp::socket        socket;
+    asio::steady_timer send_timer;
+    std::mutex         send_mutex;
+    std::string        nickname{};
+    std::string        fingerprint{};
+    std::string        send_buffer{};
+
+    explicit Connection(asio::io_context&);
+
+    /**
+     * @brief Adds a string to the buffer.
+     *
+     * Adds a string to the buffer, appending the string with a '\n' at the end,
+     * canceling the timer for the message to be sent.
+     *
+     * @param[in] message: Message to be buffered.
+     */
+    void add_to_send_buffer(std::string);
+};
+
+
 /**
  * @brief Session class containing everything needed to open an async client session.
  *
@@ -26,14 +52,12 @@ constexpr const char *LOCALHOST    {"127.0.0.1"};
  */
 class Session {
 public:
-    std::deque<std::string> receiver_queue;
-    std::mutex              receiver_mutex;
-    std::string             sender_buf;
-    std::mutex              sender_mutex;
+    std::deque<std::string> receive_queue;
+    std::mutex              receive_mutex;
 
     /* Deleted default constructor and destructor as it's not supposed to be used without Client or Server. */
-    Session();
-    ~Session() noexcept;
+    Session() = default;
+    virtual ~Session() noexcept;
 
 
     /**
@@ -41,14 +65,14 @@ public:
      *
      * @param[in] socket: Socket connection to send data to.
      */
-    awaitable<void> sender(tcp::socket& socket);
+    virtual awaitable<void> sender(std::shared_ptr<Connection>);
 
     /**
      * @brief Receiver function to run so the session awaits for data.
      *
      * @param[in] socket: Socket connection to receive data from.
      */
-    awaitable<void> receiver(tcp::socket& socket);
+    virtual awaitable<void> receiver(std::shared_ptr<Connection>);
 
     /**
      * @brief Adds a function for the session to run on received message.
@@ -64,26 +88,17 @@ public:
      */
     void set_disconnecter(std::function<void(void)>);
 
-    /**
-     * @brief Adds a string to the buffer.
-     *
-     * Adds a string to the buffer, appending the string with a '\n' at the end,
-     * canceling the timer for the message to be sent.
-     *
-     * @param[in] message: Message to be buffered.
-     */
-    void add_to_send_buffer(std::string);
+    /* Broadcasting method for Server and Client. */
+    virtual void broadcast(const std::string&, std::shared_ptr<Connection> = nullptr) = 0;
 
-    virtual void process_message(std::string);
+    virtual void process_message(std::string&, std::shared_ptr<Connection> = nullptr) = 0;
 
 protected:
     std::string host;
     unsigned    port;
 
-    asio::io_context                    ioc;
-    std::unique_ptr<asio::steady_timer> send_timer;
-    std::thread                         ioc_thread;
-
+    asio::io_context          ioc;
+    std::thread               ioc_thread;
     std::function<void(void)> poster;
     std::function<void(void)> disconnecter;
 
@@ -91,10 +106,24 @@ protected:
 
 
 class Client : public Session {
-    tcp::socket socket;
+    std::shared_ptr<Connection> connection;
 
-    /* Queue line for the sender, then wake their sender. */
-    void send_message(const std::string&);
+    /**
+     * @brief Receiver function to run so the session awaits for data.
+     *
+     * @param[in] socket: Socket connection to receive data from.
+     */
+    awaitable<void> receiver(std::shared_ptr<Connection>) override;
+
+    /**
+     * @brief Broadcasting method for Client, send message to Server.
+     *
+     * @param[in] message: Message to be broadcast.
+     * @param[in] origin: Not used as it's a Client transaction.
+     */
+    void broadcast(const std::string&, std::shared_ptr<Connection> = nullptr) override;
+
+    virtual void process_message(std::string&, std::shared_ptr<Connection> = nullptr) override;
 
 public:
     explicit Client(const std::string &host, unsigned port);
@@ -110,28 +139,28 @@ public:
  * Runs its own ioc on a dedicated thread — same pattern as Session.
  */
 class Server : public Session {
-    /* Client struct containing socket, timer, buffer and nickname for each client. */
-    struct Client {
-        inline static unsigned current_id{};
-
-        tcp::socket        socket;
-        asio::steady_timer timer;
-        std::string        nickname{};
-        std::string        fingerprint{};
-        std::string        buf{};
-
-        explicit Client(asio::io_context&);
-    };
-
     tcp::acceptor    acceptor;
 
-    std::list<std::shared_ptr<Client>> clients{};
+    std::list<std::shared_ptr<Connection>> connections{};
 
-    /* Queue line for every client except origin, then wake their sender. */
-    void broadcast(const std::string&, Client* = nullptr);
+    /**
+     * @brief Receiver function to run so the session awaits for data.
+     *
+     * @param[in] socket: Socket connection to receive data from.
+     */
+    awaitable<void> receiver(std::shared_ptr<Connection>) override;
 
     /* Accept loop function to run so the session accepts new clients. */
     awaitable<void> accept_loop();
+
+    /**
+     * @brief Broadcasting method for Server, send to all connected clients accordingly.
+     *
+     * @param[in] message: Message to be broadcast.
+     * @param[in] origin: Connection that sent the message.
+     */
+    void broadcast(const std::string&, std::shared_ptr<Connection> = nullptr) override;
+    void process_message(std::string&, std::shared_ptr<Connection> = nullptr) override;
 
 public:
     explicit Server(unsigned port);
@@ -163,7 +192,6 @@ class Chat : public Gtk::Box {
     std::unique_ptr<Glib::Dispatcher> dispatcher{};
 
     std::unique_ptr<Session> session{};
-    std::unique_ptr<Server>  server{};  // non-null when we are the host
 
     /**
      * @brief Get Main Application status label.
