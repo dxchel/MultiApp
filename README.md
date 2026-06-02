@@ -42,6 +42,7 @@ MultiApp/            // Core application files
 - 🎉 Local chat app
 - ❌ Maze generator/player/solver
 - ❌ Game of life
+- ❌ Local AI chat with ollama
 - 🔬 Other goodies in the future
 
 ## 🏗️ Requirements
