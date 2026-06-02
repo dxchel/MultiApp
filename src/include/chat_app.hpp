@@ -2,9 +2,7 @@
 
 #include "session.hpp"
 
-#include <atomic>
 #include <gtkmm.h>
-#include <regex>
 
 
 
@@ -18,6 +16,16 @@ class Chat : public Gtk::Box {
     friend class ChatTest;
     friend class ChatTest_ChatFunctionalTest_Test;
 
+public:
+    /**
+     * @brief Creates Chat object with all needed Widgets and signals.
+     *
+     * Creates Chat object using res/gtk/chat_app.ui file,
+     * Checks for file issues, gets Widgets and connects needed signals.
+     */
+    Chat();
+
+private:
     Gtk::Button         *home_button{};
     Gtk::Button         *connect_button{};
     Gtk::Button         *message_button{};
@@ -57,13 +65,4 @@ class Chat : public Gtk::Box {
      * connects to it.
      */
     inline void session_connection();
-
-public:
-    /**
-     * @brief Creates Chat object with all needed Widgets and signals.
-     *
-     * Creates Chat object using res/gtk/chat_app.ui file,
-     * Checks for file issues, gets Widgets and connects needed signals.
-     */
-    Chat();
 };

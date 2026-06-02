@@ -7,39 +7,6 @@
 #include <webkit/webkit.h>
 
 
-std::string Browser::get_uri_root(const std::string &uri) {
-    std::string result {std::regex_replace(uri, std::regex("(https?://|www\\.)"), "")};
-    return result;
-}
-
-void Browser::entry_uri_load(std::string uri) const {
-    if(uri == "") [[unlikely]]
-        // Get entry text
-        uri = uri_entry->get_text();
-
-    // Is current URI a web page.
-    if(uri.find(' ') > uri.size() &&
-        std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$"))) [[likely]] {
-        // Add missing parts of the URL
-        if(uri.find("http") > uri.size()) [[likely]] {
-            if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL)) [[likely]]
-                uri = "www." + uri;
-            uri = "https://" + uri;
-        }else if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL)) [[unlikely]]
-            std::regex_replace(uri, std::regex("https?://"), "https://www.");
-    } else [[unlikely]] {
-        // Add as a google search
-        std::replace(uri.begin(), uri.end(), ' ', '+');
-        uri = "https://www.google.com/search?q=" + uri;
-    }
-
-    // Reload if the requested URI is the same as current
-    if(get_uri_root(webkit_web_view_get_uri(web_view)) != get_uri_root(uri)) [[likely]]
-        webkit_web_view_load_uri(web_view, uri.c_str());
-    else [[unlikely]]
-        webkit_web_view_reload(web_view);
-}
-
 Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
@@ -123,6 +90,38 @@ void Browser::on_realize() {
         status_label->set_text("Welcome to the Browser!");
 }
 
+std::string Browser::get_uri_root(const std::string &uri) {
+    std::string result { std::regex_replace(uri, std::regex("(https?://|www\\.)"), "") };
+    return result;
+}
+
+void Browser::entry_uri_load(std::string uri) const {
+    if(uri == "") [[unlikely]]
+        // Get entry text
+        uri = uri_entry->get_text();
+
+    // Is current URI a web page.
+    if(uri.find(' ') > uri.size() &&
+        std::regex_search(uri, std::regex("^(http(s)?://)?(www\\.)?[A-Za-z0-9.]+\\.[A-Za-z0-9/+-_?=#]+$"))) [[likely]] {
+        // Add missing parts of the URL
+        if(uri.find("http") > uri.size()) [[likely]] {
+            if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL)) [[likely]]
+                uri = "www." + uri;
+            uri = "https://" + uri;
+        }else if(uri.find("www.") > uri.size() && get_uri_root(uri) != get_uri_root(HOME_URL)) [[unlikely]]
+            std::regex_replace(uri, std::regex("https?://"), "https://www.");
+    } else [[unlikely]] {
+        // Add as a google search
+        std::replace(uri.begin(), uri.end(), ' ', '+');
+        uri = "https://www.google.com/search?q=" + uri;
+    }
+
+    // Reload if the requested URI is the same as current
+    if(get_uri_root(webkit_web_view_get_uri(web_view)) != get_uri_root(uri)) [[likely]]
+        webkit_web_view_load_uri(web_view, uri.c_str());
+    else [[unlikely]]
+        webkit_web_view_reload(web_view);
+}
 
 GtkWidget *Browser::on_create_cb(WebKitWebView *web_view,
                                  WebKitNavigationAction *action,

@@ -1,6 +1,7 @@
 #pragma once
 
-#include<any>
+#include <any>
+#include <vector>
 
 #include <gtkmm.h>
 #include <cairo.h>
@@ -46,48 +47,6 @@ class FractalArea : public Gtk::DrawingArea {
     friend class FractalTest;
     friend class FractalTest_FractalFunctionalTest_Test;
 
-    std::string selection;
-    double      cx{};
-    double      cy{};
-    double      range{};
-    double      drag_start_cx{};
-    double      drag_start_cy{};
-    double      const_r{};
-    double      const_i{};
-    double      r_lower_level{};
-    double      r_upper_level{};
-    double      g_lower_level{};
-    double      g_upper_level{};
-    double      b_lower_level{};
-    double      b_upper_level{};
-    int         max_iter{};
-
-    Cairo::RefPtr<Cairo::ImageSurface> surface;
-
-    std::unordered_map<std::string, std::function<int(double, double, int, std::vector<std::any>)>> fractal_map;
-
-    /**
-     * @brief Uses custom RGB intervals to draw spectrum
-     *
-     * @param[in] iter: Iteration to compute the RGB spectrum with.
-     * @param[in] max_iter: Maximum iterations available for fractal resolution.
-     * @param[in] r: reference to the R data to write on.
-     * @param[in] g: reference to the G data to write on.
-     * @param[in] b: reference to the B data to write on.
-     */
-    void iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b);
-
-
-public:
-    /**
-     * @brief Creates FractalArea object with all needed functions.
-     *
-     * Creates FractalArea object with needed fractal drawing functions
-     *
-     * @param[in] selection: Fractal algorithm selection for function mapping with Julia as default.
-     */
-    FractalArea(const std::string selection = "Julia");
-
     /**
      * @brief Draws the fractal needed into the Cairo Context.
      *
@@ -99,6 +58,16 @@ public:
      * @param[in] h:  Height of the drawing area.
      */
     void on_draw(const Cairo::RefPtr<Cairo::Context>&, int, int);
+
+public:
+    /**
+     * @brief Creates FractalArea object with all needed functions.
+     *
+     * Creates FractalArea object with needed fractal drawing functions
+     *
+     * @param[in] selection: Fractal algorithm selection for function mapping with Julia as default.
+     */
+    FractalArea(const std::string selection = "Julia");
 
     /**
      * @brief Sets the selection string.
@@ -156,6 +125,38 @@ public:
      * Resets Drawing area to it's original positions.
      */
     void reset();
+
+private:
+    std::string selection;
+    double      cx{};
+    double      cy{};
+    double      range{};
+    double      drag_start_cx{};
+    double      drag_start_cy{};
+    double      const_r{};
+    double      const_i{};
+    double      r_lower_level{};
+    double      r_upper_level{};
+    double      g_lower_level{};
+    double      g_upper_level{};
+    double      b_lower_level{};
+    double      b_upper_level{};
+    int         max_iter{};
+
+    Cairo::RefPtr<Cairo::ImageSurface> surface;
+
+    std::unordered_map<std::string, std::function<int(double, double, int, std::vector<std::any>)>> fractal_map;
+
+    /**
+     * @brief Uses custom RGB intervals to draw spectrum
+     *
+     * @param[in] iter: Iteration to compute the RGB spectrum with.
+     * @param[in] max_iter: Maximum iterations available for fractal resolution.
+     * @param[in] r: reference to the R data to write on.
+     * @param[in] g: reference to the G data to write on.
+     * @param[in] b: reference to the B data to write on.
+     */
+    void iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, uint8_t &b);
 };
 
 /**
@@ -168,6 +169,16 @@ class FractalBox : public Gtk::Box {
     friend class FractalTest;
     friend class FractalTest_FractalFunctionalTest_Test;
 
+public:
+    /**
+     * @brief Creates FractalBox object with all needed Widgets and signals.
+     *
+     * Creates FractalBox object using res/gtk/fractal_app.ui file,
+     * Checks for file issues, gets Widgets and connects needed signals.
+     */
+    FractalBox();
+
+private:
     std::string   selection{};
     Gtk::Box      *menu{};
     Gtk::Box      *consts_box{};
@@ -193,13 +204,4 @@ class FractalBox : public Gtk::Box {
      * the box needing to be contained.
      */
     void on_realize() override;
-
-public:
-    /**
-     * @brief Creates FractalBox object with all needed Widgets and signals.
-     *
-     * Creates FractalBox object using res/gtk/fractal_app.ui file,
-     * Checks for file issues, gets Widgets and connects needed signals.
-     */
-    FractalBox();
 };

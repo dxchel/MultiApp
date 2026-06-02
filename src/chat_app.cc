@@ -2,6 +2,8 @@
 #include "include/session.hpp"
 
 #include <gtkmm.h>
+#include <iostream>
+#include <regex>
 
 
 
@@ -57,10 +59,10 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     append(*chat_scrolled);
     append(*footer_box);
 
+    // Add css to the default display
     auto css_provider = Gtk::CssProvider::create();
     css_provider->load_from_path("./res/gtk/chat_app.css");
 
-    // Add to the default display
     Gtk::StyleContext::add_provider_for_display(
         Gdk::Display::get_default(),
         css_provider,
@@ -79,7 +81,7 @@ void Chat::on_realize() {
 
 inline void Chat::session_connection() {
     // Disconnect if connected
-    if (!connect_button->get_label().compare("Disconnect")) {
+    if ( session ) {
         session = nullptr;
 
         connect_button->set_label("Connect");
@@ -137,7 +139,7 @@ inline void Chat::session_connection() {
         std::lock_guard<std::mutex> lock(session->receive_mutex);
         while (!session->receive_queue.empty()) {
             std::string message{std::move(session->receive_queue.front())};
-            session->receive_queue.pop_front();
+            session->receive_queue.pop_back();
 
             std::cout << message << "\n";
 
@@ -169,7 +171,6 @@ inline void Chat::session_connection() {
         }
     });
     session->set_poster([this]() { dispatcher->emit(); });
-    return;
 }
 
 inline void Chat::message_buffer () {

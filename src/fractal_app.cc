@@ -2,10 +2,11 @@
 
 #include <iostream>
 #include <any>
+#include <vector>
+#include <thread>
 
 #include <gtkmm.h>
 #include <cairo.h>
-#include <thread>
 
 
 int mandelbrot(double cr, double ci, int max_iter, const std::vector<std::any>) {
@@ -20,6 +21,10 @@ int mandelbrot(double cr, double ci, int max_iter, const std::vector<std::any>) 
 }
 
 int julia(double cr, double ci, int max_iter, const std::vector<std::any> consts) {
+    if (consts.size() != 2) {
+        std::cerr << "Julia fractal requires two constants, using defaults." << std::endl;
+        return julia(cr, ci, max_iter, {-0.5125, 0.5213});
+    }
     double zr {cr}, zi {ci};
     for (int i{}; i < max_iter; ++i) {
         double zr2 {zr*zr - zi*zi + std::any_cast<double>(consts[0])},
@@ -68,14 +73,14 @@ void FractalArea::iter_to_rgb(int iter, int max_iter, uint8_t &r, uint8_t &g, ui
 
 FractalArea::FractalArea(const std::string selection) :
     Gtk::DrawingArea(),
-    selection     (selection),
-    cx            (-0.5),
-    cy            (0.0),
-    range         (3.5),
-    drag_start_cx (),
-    drag_start_cy (),
-    surface       (),
-    fractal_map   ({ { "Julia", julia }, { "Mandelbrot", mandelbrot } }) {
+    selection       (selection),
+    cx              (-0.5),
+    cy              (0.0),
+    range           (3.5),
+    drag_start_cx   (),
+    drag_start_cy   (),
+    surface         (),
+    fractal_map     ({ { "Julia", julia }, { "Mandelbrot", mandelbrot } }) {
     set_expand(true);
     set_draw_func(sigc::mem_fun(*this, &FractalArea::on_draw));
 
@@ -124,7 +129,7 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
         }
     }};
 
-    int band {h/NTHREADS};
+    int band { h/NTHREADS };
     for (int t{}; t < NTHREADS; ++t) {
         int y0 {t*band},
             y1 {(t == NTHREADS-1) ? h : y0 + band};
@@ -171,10 +176,8 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
         throw ex;
     }
 
-    // Get the GtkBuilder-instantiated nav and header:
-    menu             = Gtk::manage(ref_builder->get_widget<Gtk::Box>("menu_bar"));
-
     // Get the GtkBuilder-instantiated buttons, and connect a signal handler
+    menu             = Gtk::manage(ref_builder->get_widget<Gtk::Box>("menu_bar"));
     reset_button     = ref_builder->get_widget<Gtk::Button>("reset_button");
     save_button      = ref_builder->get_widget<Gtk::Button>("save_button");
     fractal_dropdown = ref_builder->get_widget<Gtk::DropDown>("fractal_dropdown");
@@ -211,6 +214,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
             }
         );
 
+    // Iterations scale and color scales
     iter_scale = ref_builder->get_widget<Gtk::Scale>("iter_scale");
     if(iter_scale) [[likely]] {
         iter_scale->signal_value_changed().connect([this]{

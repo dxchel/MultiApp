@@ -1,10 +1,9 @@
 #pragma once
 
-#include <iostream>
-#include <thread>
-#include <deque>
+#include <vector>
 #include <list>
 
+#include <thread>
 #include <asio.hpp>
 
 using asio::ip::tcp;
@@ -16,7 +15,12 @@ constexpr const char *LOCALHOST    {"127.0.0.1"};
 
 
 
-/* Connection struct containing socket, timer, buffer and nickname for each client. */
+/**
+ * @brief Connection struct containing important information for a connection.
+ * 
+ * Contains the socket, timer, nickname, fingerprint and send buffer for a connection.
+ * Also contains a function to add messages to the send buffer using a mutex in case needed.
+ */
 struct Connection {
     inline static unsigned current_id{};
 
@@ -27,6 +31,7 @@ struct Connection {
     std::string        fingerprint{};
     std::string        send_buffer{};
 
+    /* Constructor for Connection, initializes the socket and timer, and sets the default nickname. */
     explicit Connection(asio::io_context&);
 
     /**
@@ -37,44 +42,35 @@ struct Connection {
      *
      * @param[in] message: Message to be buffered.
      */
-    void add_to_send_buffer(std::string);
+    void add_to_send_buffer(std::string&);
 };
 
 
 /**
- * @brief Session class containing everything needed to open an async client session.
+ * @brief Session class containing basic structure for Client/Server.
  *
- * Uses a string buffer for sending, appends received messages
- * to a deque and runs asio in a different thread for the app to run other things.
- * 
- * It has a poster and disconnecter function so it can interact with GUI.
+ * Uses a vector to store received messages and runs connection in its own thread.
+ * Contains a sender and receiver asio functions and has a poster and disconnecter function so it can interact with GUI.
  */
 class Session {
 public:
-    std::deque<std::string> receive_queue;
-    std::mutex              receive_mutex;
+    std::vector<std::string> receive_queue;
+    std::mutex               receive_mutex;
 
-    /* Deleted default constructor and destructor as it's not supposed to be used without Client or Server. */
+    /* Default constructor for Session. */
     Session() = default;
+
+    /* Virtual destructor for Session. Stops ioc and joins thread. */
     virtual ~Session() noexcept;
 
+    /* Non copyable, non movable */
+    Session(const Session&) = delete;
+    Session& operator=(const Session&) = delete;
+    Session(Session&&) = delete;
+    Session& operator=(Session&&) = delete;
 
     /**
-     * @brief Sender function to run so the session sends data.
-     *
-     * @param[in] socket: Socket connection to send data to.
-     */
-    virtual awaitable<void> sender(std::shared_ptr<Connection>);
-
-    /**
-     * @brief Receiver function to run so the session awaits for data.
-     *
-     * @param[in] socket: Socket connection to receive data from.
-     */
-    virtual awaitable<void> receiver(std::shared_ptr<Connection>);
-
-    /**
-     * @brief Adds a function for the session to run on received message.
+     * @brief Adds a function for the session to run when a message was processed.
      *
      * @param[in] function: Function to run on received message.
      */
@@ -87,9 +83,12 @@ public:
      */
     void set_disconnecter(std::function<void(void)>);
 
-    /* Broadcasting method for Server and Client. */
-    virtual void broadcast(const std::string&, std::shared_ptr<Connection> = nullptr) = 0;
-
+    /**
+     * @brief Processes a message depending on its type.
+     *
+     * @param[in] message: Message to be processed.
+     * @param[in] origin: Connection that sent the message.
+     */
     virtual void process_message(std::string&, std::shared_ptr<Connection> = nullptr) = 0;
 
 protected:
@@ -101,32 +100,75 @@ protected:
     std::function<void(void)> poster;
     std::function<void(void)> disconnecter;
 
-};
-
-
-class Client : public Session {
-    std::shared_ptr<Connection> connection;
+    /**
+     * @brief Sender function to run so the session sends data.
+     *
+     * @param[in] connection: Connection struct to send data to.
+     */
+    awaitable<void> sender(std::shared_ptr<Connection>);
 
     /**
      * @brief Receiver function to run so the session awaits for data.
      *
-     * @param[in] socket: Socket connection to receive data from.
+     * @param[in] connection: Connection struct to receive data from.
+     */
+    virtual awaitable<void> receiver(std::shared_ptr<Connection>);
+
+    /**
+     * @brief Broadcasting method for Server and Client.
+     *
+     * @param[in] message: Message to be broadcasted.
+     * @param[in] origin: Connection that sent the message.
+     */
+    virtual void broadcast(const std::string&, std::shared_ptr<Connection> = nullptr) = 0;
+};
+
+
+/**
+ * @brief Client class that connects to a server and sends messages.
+ *
+ * Connects to a server on a given host and port, sends messages to the server,
+ * and receives messages from the server.
+ */
+class Client : public Session {
+public:
+    /* Constructor for Client, initializes the connection and connects to the server. */
+    explicit Client(const std::string &host, unsigned port);
+
+    /* Destructor for Client. Closes socket if needed. */
+    ~Client() noexcept;
+
+    /**
+     * @brief Processes a message for Client.
+     * 
+     * Client posts the message and sends it to the server in case there's no origin.
+     *
+     * @param[in] message: Message to be processed.
+     * @param[in] origin: Connection that sent the message.
+     */
+    void process_message(std::string&, std::shared_ptr<Connection> = nullptr) override;
+
+private:
+    std::shared_ptr<Connection> connection;
+
+    /**
+     * @brief Receiver function to run so the connection awaits for data.
+     * 
+     * It also removes closed connections.
+     *
+     * @param[in] connection: Connection struct to receive data from.
      */
     awaitable<void> receiver(std::shared_ptr<Connection>) override;
 
     /**
-     * @brief Broadcasting method for Client, send message to Server.
+     * @brief Broadcasting method for Client.
+     * 
+     * Broadcasts a message to the server, sending it to the server with the origin connection as nullptr.
      *
-     * @param[in] message: Message to be broadcast.
-     * @param[in] origin: Not used as it's a Client transaction.
+     * @param[in] message: Message to be broadcasted.
+     * @param[in] origin: nullptr.
      */
     void broadcast(const std::string&, std::shared_ptr<Connection> = nullptr) override;
-
-    virtual void process_message(std::string&, std::shared_ptr<Connection> = nullptr) override;
-
-public:
-    explicit Client(const std::string &host, unsigned port);
-    ~Client() noexcept;
 };
 
 
@@ -135,9 +177,26 @@ public:
  *
  * Listens on a given port, relays every incoming line to all other connected
  * clients, and echoes it back to the sender tagged with "(you)".
- * Runs its own ioc on a dedicated thread — same pattern as Session.
  */
 class Server : public Session {
+public:
+    /* Constructor for Server, initializes the acceptor and starts the accept loop. */
+    explicit Server(unsigned port);
+
+    /* Destructor for Server. Closes the acceptor and all connections. */
+    ~Server() noexcept;
+
+    /**
+     * @brief Processes a message for the Server.
+     * 
+     * Always posts and broadcasts the message to all clients.
+     *
+     * @param[in] message: Message to be processed.
+     * @param[in] origin: Connection that sent the message.
+     */
+    void process_message(std::string&, std::shared_ptr<Connection> = nullptr) override;
+
+private:
     tcp::acceptor    acceptor;
 
     std::list<std::shared_ptr<Connection>> connections{};
@@ -153,16 +212,13 @@ class Server : public Session {
     awaitable<void> accept_loop();
 
     /**
-     * @brief Broadcasting method for Server, send to all connected clients accordingly.
+     * @brief Broadcasting method for Server.
+     * 
+     * Broadcasts a message to all clients.
      *
-     * @param[in] message: Message to be broadcast.
+     * @param[in] message: Message to be broadcasted.
      * @param[in] origin: Connection that sent the message.
      */
     void broadcast(const std::string&, std::shared_ptr<Connection> = nullptr) override;
-    void process_message(std::string&, std::shared_ptr<Connection> = nullptr) override;
-
-public:
-    explicit Server(unsigned port);
-    ~Server() noexcept;
 };
 

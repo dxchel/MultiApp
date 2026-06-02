@@ -13,9 +13,19 @@ class MainApplication : public Gtk::Application {
     friend class MainApplicationTest;
     friend class MainApplicationTest_MainApplicationStructureTest_Test;
 
-    Gtk::ApplicationWindow *main_window{};
+public:
+    Gtk::Label *status_label{};
 
-    Gtk::Box *selected_app{};
+    /**
+     * @brief Creates RefPtr using class constructor.
+     *
+     * @return New MainApplication object RefPtr.
+     */
+    static Glib::RefPtr<MainApplication> create();
+
+private:
+    Gtk::ApplicationWindow *main_window{};
+    Gtk::Box               *selected_app{};
 
     /**
      * @brief Creates ApplicationWindow to show.
@@ -27,7 +37,6 @@ class MainApplication : public Gtk::Application {
      */
     Gtk::ApplicationWindow* create_window();
 
-protected:
     /**
      * @brief Creates MainApplication object with application id and handles.
      */
@@ -37,14 +46,4 @@ protected:
      * @brief Presents main window.
      */
     void on_activate() override;
-
-public:
-    Gtk::Label *status_label{};
-
-    /**
-     * @brief Creates RefPtr using class constructor.
-     *
-     * @return New MainApplication object RefPtr.
-     */
-    static Glib::RefPtr<MainApplication> create();
 };

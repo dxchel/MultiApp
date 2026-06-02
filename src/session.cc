@@ -1,25 +1,29 @@
 #include "include/session.hpp"
 
-#include <asio.hpp>
 #include <iostream>
+#include <vector>
+#include <list>
+
 #include <thread>
+#include <asio.hpp>
 
 
 
 Connection::Connection(asio::io_context& ioc) :
-    socket   (ioc),
-    send_timer    (ioc),
-    nickname ("User" + std::to_string(++current_id))
+    socket     (ioc),
+    send_timer (ioc),
+    nickname   ("User" + std::to_string(++current_id))
     { send_timer.expires_at(asio::steady_timer::time_point::min()); }
 
-void Connection::add_to_send_buffer(std::string message) {
+void Connection::add_to_send_buffer(std::string& message) {
     send_buffer.append(message + "\n");
     send_timer.cancel();
-    return;
 }
 
 
 Session::~Session() noexcept {
+    poster = nullptr;
+    disconnecter = nullptr;
     if ( !ioc.stopped() ) ioc.stop();
     if ( ioc_thread.joinable() ) ioc_thread.join();
     std::cout << "[Server] stopped\n";
@@ -166,6 +170,7 @@ awaitable<void> Server::receiver(std::shared_ptr<Connection> connection) {
     connections.remove(connection);
     std::string farewell{connection->nickname + " has left the chat!!!"};
     process_message(farewell);
+    if (disconnecter) disconnecter();
 }
 
 awaitable<void> Server::accept_loop() {
