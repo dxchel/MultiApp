@@ -183,7 +183,7 @@ public:
     /* Constructor for Server, initializes the acceptor and starts the accept loop. */
     explicit Server(unsigned port);
 
-    /* Destructor for Server. Closes the acceptor and all connections. */
+    /* Destructor for Server. Closes the acceptor. */
     ~Server() noexcept;
 
     /**
@@ -203,7 +203,8 @@ private:
 
     /**
      * @brief Receiver function to run so the session awaits for data.
-     *
+     * Removes closed connections.
+     * 
      * @param[in] socket: Socket connection to receive data from.
      */
     awaitable<void> receiver(std::shared_ptr<Connection>) override;
