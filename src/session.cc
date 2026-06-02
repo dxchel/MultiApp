@@ -156,11 +156,6 @@ Server::Server(unsigned port) : Session::Session(),
 
 Server::~Server() noexcept {
     acceptor.close();
-    for (auto& connection : connections) {
-        if (connection->socket.is_open())
-            connection->socket.close();
-        connection->send_timer.cancel();
-    }
 }
 
 awaitable<void> Server::receiver(std::shared_ptr<Connection> connection) {
