@@ -24,7 +24,7 @@ void Connection::add_to_send_buffer(std::string& message) {
 Session::~Session() noexcept {
     if ( !ioc.stopped() ) ioc.stop();
     if ( ioc_thread.joinable() ) ioc_thread.join();
-    std::cout << "[Server] stopped\n";
+    std::cout << "[" + type + "] stopped\n";
 }
 
 awaitable<void> Session::sender(std::shared_ptr<Connection> connection) {
@@ -42,7 +42,7 @@ awaitable<void> Session::sender(std::shared_ptr<Connection> connection) {
             co_await asio::async_write(connection->socket, asio::buffer(data), use_awaitable);
         }
     } catch (const std::exception& e) {
-        std::cout << "[Server] sender error: " << e.what() << "\n";
+        std::cout << "[" + type + "] sender error: " << e.what() << "\n";
     }
 }
 
@@ -61,7 +61,7 @@ awaitable<void> Session::receiver(std::shared_ptr<Connection> connection) {
             process_message(line, connection);
         }
     } catch (const std::exception& e) {
-        std::cout << "[Server] " << connection->nickname << " disconnected: " << e.what() << "\n";
+        std::cout << "[" + type + "] " << connection->nickname << " disconnected: " << e.what() << "\n";
     }
 }
 
@@ -74,6 +74,7 @@ void Session::set_disconnecter(std::function<void(void)> new_disconnecter)
 Client::Client(const std::string &host, unsigned port) :
     Session::Session(),
     connection (std::make_shared<Connection>(ioc)) {
+    type = "Client";
     connection->nickname = "Server";
     this->host = host;
     this->port = port;
@@ -115,6 +116,7 @@ awaitable<void> Client::receiver(std::shared_ptr<Connection> connection) {
     co_await Session::receiver(connection);
     if ( connection->socket.is_open() )
         connection->socket.close();
+    if (disconnecter) disconnecter();
 }
 
 void Client::broadcast(const std::string& message, std::shared_ptr<Connection> origin) {
@@ -140,10 +142,10 @@ void Client::process_message(std::string &message, std::shared_ptr<Connection> o
 
 Server::Server(unsigned port) : Session::Session(),
     acceptor (tcp::acceptor(ioc, tcp::endpoint(tcp::v4(), static_cast<asio::ip::port_type>(port)))) {
-    host = "Server";
+    type = "Server";
     asio::co_spawn(ioc, accept_loop(), asio::detached);
     ioc_thread = std::thread([this](){ ioc.run(); });
-    std::cout << "[Server] listening on port " << port << "\n";
+    std::cout << "[" + type + "] listening on port " << port << "\n";
 }
 
 Server::~Server() noexcept {
@@ -165,7 +167,7 @@ awaitable<void> Server::accept_loop() {
         asio::error_code ec;
         co_await acceptor.async_accept(connection->socket, asio::redirect_error(use_awaitable, ec));
         if (ec) {
-            std::cout << "[server] accept loop ending: " << ec.message() << "\n";
+            std::cout << "[" + type + "] accept loop ending: " << ec.message() << "\n";
             co_return;
         }
 
@@ -173,7 +175,7 @@ awaitable<void> Server::accept_loop() {
             auto ep = connection->socket.remote_endpoint();
             connection->fingerprint = ep.address().to_string() + ":" + std::to_string(ep.port());
         } catch (...) { connection->fingerprint = "unknown"; }
-        std::cout << "[server] new client: " << connection->nickname << " (" << connection->fingerprint << ")\n";
+        std::cout << "[" + type + "] new client: " << connection->nickname << " (" << connection->fingerprint << ")\n";
 
         std::string message {connection->nickname + " says Hi!!!\n"};
         process_message(message);

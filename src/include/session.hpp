@@ -26,7 +26,7 @@ struct Connection {
 
     tcp::socket        socket;
     asio::steady_timer send_timer;
-    std::mutex         send_mutex;
+    std::mutex         send_mutex{};
     std::string        nickname{};
     std::string        fingerprint{};
     std::string        send_buffer{};
@@ -54,8 +54,9 @@ struct Connection {
  */
 class Session {
 public:
-    std::vector<std::string> receive_queue;
-    std::mutex               receive_mutex;
+    std::vector<std::string> receive_queue{};
+    std::mutex               receive_mutex{};
+    std::string              type{};
 
     /* Default constructor for Session. */
     Session() = default;
@@ -92,13 +93,12 @@ public:
     virtual void process_message(std::string&, std::shared_ptr<Connection> = nullptr) = 0;
 
 protected:
-    std::string host;
-    unsigned    port;
-
     asio::io_context          ioc;
     std::thread               ioc_thread;
-    std::function<void(void)> poster;
-    std::function<void(void)> disconnecter;
+    std::string               host{};
+    unsigned                  port{};
+    std::function<void(void)> poster{};
+    std::function<void(void)> disconnecter{};
 
     /**
      * @brief Sender function to run so the session sends data.
@@ -146,7 +146,7 @@ public:
     void process_message(std::string&, std::shared_ptr<Connection> = nullptr) override;
 
 private:
-    std::shared_ptr<Connection> connection;
+    std::shared_ptr<Connection> connection{};
 
     /**
      * @brief Receiver function to run so the connection awaits for data.
