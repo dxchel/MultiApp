@@ -53,6 +53,9 @@ struct Connection {
  * Contains a sender and receiver asio functions and has a poster and disconnecter function so it can interact with GUI.
  */
 class Session {
+    friend class ChatTest;
+    friend class ChatTest_ChatFunctionalTest_Test;
+
 public:
     std::vector<std::string> receive_queue{};
     std::mutex               receive_mutex{};
@@ -131,6 +134,9 @@ protected:
  * and receives messages from the server.
  */
 class Client : public Session {
+    friend class ChatTest;
+    friend class ChatTest_ChatFunctionalTest_Test;
+
 public:
     /* Constructor for Client, initializes the connection and connects to the server. */
     explicit Client(const std::string &host, unsigned port);
@@ -176,6 +182,9 @@ private:
  * clients, and echoes it back to the sender tagged with "(you)".
  */
 class Server : public Session {
+    friend class ChatTest;
+    friend class ChatTest_ChatFunctionalTest_Test;
+
 public:
     /* Constructor for Server, initializes the acceptor and starts the accept loop. */
     explicit Server(unsigned port);

@@ -79,7 +79,7 @@ void Chat::on_realize() {
         std::cout << "Status label not found\n";
 }
 
-inline void Chat::session_connection() {
+void Chat::session_connection() {
     // Disconnect if connected
     if ( session ) {
         session = nullptr;
@@ -101,7 +101,8 @@ inline void Chat::session_connection() {
     // Try to connect as client
     try {
         session = std::make_unique<Client>(host, port);
-        status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
+        if ( status_label )
+            status_label->set_label("Connected to server " + std::string(host) + ":" + std::to_string(port) + "!");
     } catch (const std::exception& e) {
         session = nullptr;
         // If not localhost, give up
@@ -173,7 +174,7 @@ inline void Chat::session_connection() {
     session->set_poster([this]() { dispatcher->emit(); });
 }
 
-inline void Chat::message_buffer () {
+void Chat::message_buffer () {
     if ( !message_entry->get_text_length() ) return;
     std::string message{message_entry->get_text()};
     session->process_message(message);

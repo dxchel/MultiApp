@@ -54,7 +54,7 @@ private:
      *
      * Does nothing if Entry is empty, else it adds the message and empties the Entry.
      */
-    inline void message_buffer();
+    void message_buffer();
 
     /**
      * @brief Tries connecting as client, falls back to hosting if localhost and no server found.
@@ -64,5 +64,5 @@ private:
      * If the host is localhost and the connection fails, starts a Server and
      * connects to it.
      */
-    inline void session_connection();
+    void session_connection();
 };

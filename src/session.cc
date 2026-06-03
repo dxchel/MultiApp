@@ -86,19 +86,19 @@ Client::Client(const std::string &host, unsigned port) :
     connection->send_timer.expires_at(asio::steady_timer::time_point::min());
     tcp::resolver resolver(ioc);
 
-    std::cout << "Connecting to " << host << ":" << port << "...\n";
+    std::cout << "[Client] Connecting to " << host << ":" << port << "...\n";
 
     asio::error_code ec;
     auto endpoints = resolver.resolve(host, std::to_string(port), ec);
     if (ec) {
-        std::cerr << "[error] resolve(): " << ec.message()
+        std::cerr << "[Client] resolve(): " << ec.message()
                   << "\nIs the server running?\n";
         throw std::runtime_error("Failed to resolve host");
     }
 
     asio::connect(connection->socket, endpoints, ec);
     if (ec) {
-        std::cerr << "[error] connect(): " << ec.message()
+        std::cerr << "[Client] connect(): " << ec.message()
                   << "\nIs the server running?\n";
         throw std::runtime_error("Failed to connect to server");
     }
@@ -109,6 +109,7 @@ Client::Client(const std::string &host, unsigned port) :
 
     // Run the event loop in separate thread until ioc.stop() is called
     ioc_thread = std::thread([this](){ ioc.run(); });
+    std::cout << "[Client] connected to " << host << ":" << port << "\n";
 }
 
 
