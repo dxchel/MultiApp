@@ -135,9 +135,6 @@ public:
     /* Constructor for Client, initializes the connection and connects to the server. */
     explicit Client(const std::string &host, unsigned port);
 
-    /* Destructor for Client. Closes socket if needed. */
-    ~Client() noexcept;
-
     /**
      * @brief Processes a message for Client.
      * 

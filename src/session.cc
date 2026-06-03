@@ -22,8 +22,6 @@ void Connection::add_to_send_buffer(std::string& message) {
 
 
 Session::~Session() noexcept {
-    poster = nullptr;
-    disconnecter = nullptr;
     if ( !ioc.stopped() ) ioc.stop();
     if ( ioc_thread.joinable() ) ioc_thread.join();
     std::cout << "[Server] stopped\n";
@@ -113,21 +111,15 @@ Client::Client(const std::string &host, unsigned port) :
 }
 
 
-Client::~Client() noexcept {
-    if ( connection->socket.is_open() )
-        connection->socket.close();
-}
-
 awaitable<void> Client::receiver(std::shared_ptr<Connection> connection) {
     co_await Session::receiver(connection);
     if ( connection->socket.is_open() )
         connection->socket.close();
-    if (disconnecter) disconnecter();
 }
 
 void Client::broadcast(const std::string& message, std::shared_ptr<Connection> origin) {
     (void) origin;
-    connection->send_buffer += message + "\n";
+    connection->send_buffer.append(message + "\n");
     connection->send_timer.cancel();
 }
 
@@ -163,9 +155,8 @@ awaitable<void> Server::receiver(std::shared_ptr<Connection> connection) {
     if ( connection->socket.is_open() )
         connection->socket.close();
     connections.remove(connection);
-    std::string farewell{connection->nickname + " has left the chat!!!"};
+    std::string farewell{ connection->nickname + " has left the chat!!!" };
     process_message(farewell);
-    if (disconnecter) disconnecter();
 }
 
 awaitable<void> Server::accept_loop() {
@@ -192,6 +183,7 @@ awaitable<void> Server::accept_loop() {
 
         connections.push_back(connection);
     }
+    if (disconnecter) disconnecter();
 }
 
 void Server::broadcast(const std::string& message, std::shared_ptr<Connection> origin) {
