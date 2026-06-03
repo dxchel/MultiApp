@@ -26,7 +26,7 @@ struct Connection {
 
     tcp::socket        socket;
     asio::steady_timer send_timer;
-    std::mutex         send_mutex;
+    std::mutex         send_mutex{};
     std::string        nickname{};
     std::string        fingerprint{};
     std::string        send_buffer{};
@@ -53,9 +53,13 @@ struct Connection {
  * Contains a sender and receiver asio functions and has a poster and disconnecter function so it can interact with GUI.
  */
 class Session {
+    friend class ChatTest;
+    friend class ChatTest_ChatFunctionalTest_Test;
+
 public:
-    std::vector<std::string> receive_queue;
-    std::mutex               receive_mutex;
+    std::vector<std::string> receive_queue{};
+    std::mutex               receive_mutex{};
+    std::string              type{};
 
     /* Default constructor for Session. */
     Session() = default;
@@ -92,13 +96,12 @@ public:
     virtual void process_message(std::string&, std::shared_ptr<Connection> = nullptr) = 0;
 
 protected:
-    std::string host;
-    unsigned    port;
-
     asio::io_context          ioc;
     std::thread               ioc_thread;
-    std::function<void(void)> poster;
-    std::function<void(void)> disconnecter;
+    std::string               host{};
+    unsigned                  port{};
+    std::function<void(void)> poster{};
+    std::function<void(void)> disconnecter{};
 
     /**
      * @brief Sender function to run so the session sends data.
@@ -131,12 +134,12 @@ protected:
  * and receives messages from the server.
  */
 class Client : public Session {
+    friend class ChatTest;
+    friend class ChatTest_ChatFunctionalTest_Test;
+
 public:
     /* Constructor for Client, initializes the connection and connects to the server. */
     explicit Client(const std::string &host, unsigned port);
-
-    /* Destructor for Client. Closes socket if needed. */
-    ~Client() noexcept;
 
     /**
      * @brief Processes a message for Client.
@@ -149,7 +152,7 @@ public:
     void process_message(std::string&, std::shared_ptr<Connection> = nullptr) override;
 
 private:
-    std::shared_ptr<Connection> connection;
+    std::shared_ptr<Connection> connection{};
 
     /**
      * @brief Receiver function to run so the connection awaits for data.
@@ -179,11 +182,14 @@ private:
  * clients, and echoes it back to the sender tagged with "(you)".
  */
 class Server : public Session {
+    friend class ChatTest;
+    friend class ChatTest_ChatFunctionalTest_Test;
+
 public:
     /* Constructor for Server, initializes the acceptor and starts the accept loop. */
     explicit Server(unsigned port);
 
-    /* Destructor for Server. Closes the acceptor and all connections. */
+    /* Destructor for Server. Closes the acceptor. */
     ~Server() noexcept;
 
     /**
@@ -203,7 +209,8 @@ private:
 
     /**
      * @brief Receiver function to run so the session awaits for data.
-     *
+     * Removes closed connections.
+     * 
      * @param[in] socket: Socket connection to receive data from.
      */
     awaitable<void> receiver(std::shared_ptr<Connection>) override;

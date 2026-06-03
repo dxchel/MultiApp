@@ -1,12 +1,12 @@
 #pragma once
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 #include "../../src/include/main_application.hpp"
 #include "../../src/include/browser_app.hpp"
 #include "../../src/include/fractal_app.hpp"
 #include "../../src/include/chat_app.hpp"
+
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 
 /**
@@ -103,13 +103,15 @@ protected:
 class ChatTest : public testing::Test {
 protected:
     /**
-     * @brief Creates Chat object chat.
+     * @brief Creates Chat object server and client so it can check for functionality.
      *
      * Obtains chat object using default constructor for testing.
      * */
     ChatTest();
 
-    Chat *chat{};
+    Chat *server{};
+    Chat *client_1{};
+    Chat *client_2{};
 
     Gtk::Button         *home_button{};
     Gtk::Button         *connect_button{};
