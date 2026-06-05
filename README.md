@@ -100,10 +100,7 @@ Here are some screenshots of the funtioning app on Linux.
 Fresh window when opening browser app:
 ![Browser App](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/fresh_window.png)
 
-Window after entering google.com, notice back button enabled:
-![Entered google.com](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/google.png)
-
-Window after adding directions and returning to repo in URL history, notice both back and forward buttons enabled:
+Window after adding directions and returning to project repo in URL history, notice both back and forward buttons enabled:
 ![Added some directions and returned to project Repo](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/multiapp_repo.png)
 
 Fractal app window:
