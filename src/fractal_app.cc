@@ -160,7 +160,7 @@ void FractalArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int w, int h)
 }
 
 
-FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
+Fractal::Fractal() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
     try {
@@ -189,19 +189,19 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
     if(reset_button) [[likely]]
         reset_button->signal_clicked().connect
         (
-            [this](){ fractal_area->reset(); }
+            [this]{ fractal_area->reset(); }
         );
     if(save_button) [[likely]] {
         save_button->signal_clicked().connect
         (
-            [](){ std::cout << "Save button pressed!" << std::endl;}
+            []{ std::cout << "Save button pressed!" << std::endl;}
         );
         save_button->set_visible(false);  //Set visible false until new way of creating a dialog is available
     }
     if(fractal_dropdown) [[likely]]
         fractal_dropdown->property_selected().signal_changed().connect
         (
-            [this](){
+            [this]{
                 selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractal_dropdown->get_selected_item())->get_string();
                 fractal_area->set_selection(selection);
                 if (selection != "Julia")
@@ -274,7 +274,7 @@ FractalBox::FractalBox() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
 }
 
 
-void FractalBox::on_realize() {
+void Fractal::on_realize() {
     Gtk::Box::on_realize();
     selection = std::dynamic_pointer_cast<Gtk::StringObject>(fractal_dropdown->get_selected_item())->get_string();
     status_label = dynamic_cast<Gtk::Label *>(get_parent()->get_parent()->get_parent()->get_parent()->get_last_child());
