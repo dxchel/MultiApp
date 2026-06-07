@@ -16,42 +16,6 @@
           <object class="GtkNotebook" id="main_notebook">
             <property name="page">0</property>
             <property name="vexpand">True</property>
-            <child>
-              <object class="GtkBox" id="Chat">
-                <property name="orientation">vertical</property>
-                <property name="hexpand">True</property>
-                <property name="vexpand">True</property>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel">
-                <property name="label">Chat</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox" id="Fractal">
-                <property name="orientation">vertical</property>
-                <property name="hexpand">True</property>
-                <property name="vexpand">True</property>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel">
-                <property name="label">Fractal</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox" id="Browser">
-                <property name="orientation">vertical</property>
-                <property name="hexpand">True</property>
-                <property name="vexpand">True</property>
-              </object>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel">
-                <property name="label">Browser</property>
-              </object>
-            </child>
           </object>
         </child>
         <child>

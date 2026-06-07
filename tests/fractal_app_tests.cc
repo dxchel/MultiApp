@@ -6,7 +6,8 @@
 #include <gmock/gmock.h>
 
 
-FractalTest::FractalTest() : fractal (Gtk::manage(new FractalBox())),
+FractalTest::FractalTest() :
+    fractal          (Gtk::manage(new Fractal())),
     menu             (fractal->menu),
     consts_box       (fractal->consts_box),
     reset_button     (fractal->reset_button),

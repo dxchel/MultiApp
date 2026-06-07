@@ -72,7 +72,7 @@ protected:
      * */
     FractalTest();
 
-    FractalBox    *fractal{};
+    Fractal    *fractal{};
     Gtk::Box      *menu{};
     Gtk::Box      *consts_box{};
     Gtk::Button   *reset_button{};

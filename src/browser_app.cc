@@ -44,31 +44,31 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     if(back_button) [[likely]]
         back_button->signal_clicked().connect
         (
-            [this](){ webkit_web_view_go_back(web_view);}
+            [this]{ webkit_web_view_go_back(web_view);}
         );
     if(forward_button) [[likely]]
         forward_button->signal_clicked().connect
         (
-            [this](){ webkit_web_view_go_forward(web_view);}
+            [this]{ webkit_web_view_go_forward(web_view);}
         );
     if(home_button) [[likely]]
         home_button->signal_clicked().connect
         (
-            [this](){ entry_uri_load(HOME_URL);}
+            [this]{ entry_uri_load(HOME_URL);}
         );
     if(reload_button) [[likely]]
         reload_button->signal_clicked().connect
         (
-            [this]() {
+            [this] {
                 webkit_web_view_is_loading(web_view) ?
                 webkit_web_view_stop_loading(web_view) :
                 webkit_web_view_reload(web_view);
             }
         );
     if(uri_entry) [[likely]] {
-        uri_entry->signal_activate().connect([this](){ entry_uri_load();});
+        uri_entry->signal_activate().connect([this]{ entry_uri_load();});
         if(enter_button) [[likely]]
-            enter_button->signal_clicked().connect([this](){ entry_uri_load();});
+            enter_button->signal_clicked().connect([this]{ entry_uri_load();});
     }
     // Menu button not visible as no usage needed for the moment
     if(menu_button) [[likely]] menu_button->set_visible(false);

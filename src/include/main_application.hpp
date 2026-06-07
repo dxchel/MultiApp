@@ -27,6 +27,8 @@ private:
     Gtk::ApplicationWindow *main_window{};
     Gtk::Box               *selected_app{};
 
+    std::vector<std::pair<std::string, std::function<Gtk::Box*()>>> apps{};
+
     /**
      * @brief Creates ApplicationWindow to show.
      *

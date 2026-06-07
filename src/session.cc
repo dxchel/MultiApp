@@ -108,7 +108,7 @@ Client::Client(const std::string &host, unsigned port) :
     asio::co_spawn(ioc, sender(connection), asio::detached);
 
     // Run the event loop in separate thread until ioc.stop() is called
-    ioc_thread = std::thread([this](){ ioc.run(); });
+    ioc_thread = std::thread([this]{ ioc.run(); });
     std::cout << "[Client] connected to " << host << ":" << port << "\n";
 }
 
@@ -145,7 +145,7 @@ Server::Server(unsigned port) : Session::Session(),
     acceptor (tcp::acceptor(ioc, tcp::endpoint(tcp::v4(), static_cast<asio::ip::port_type>(port)))) {
     type = "Server";
     asio::co_spawn(ioc, accept_loop(), asio::detached);
-    ioc_thread = std::thread([this](){ ioc.run(); });
+    ioc_thread = std::thread([this]{ ioc.run(); });
     std::cout << "[" + type + "] listening on port " << port << "\n";
 }
 

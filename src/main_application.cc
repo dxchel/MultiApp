@@ -1,4 +1,5 @@
 #include "include/main_application.hpp"
+#include "gtkmm/object.h"
 #include "include/browser_app.hpp"
 #include "include/fractal_app.hpp"
 #include "include/chat_app.hpp"
@@ -8,7 +9,12 @@
 #include <gtkmm.h>
 
 MainApplication::MainApplication() :
-    Gtk::Application("org.xchel.multiapp", Gio::Application::Flags::HANDLES_OPEN | Gio::Application::Flags::NON_UNIQUE) {}
+    Gtk::Application("org.xchel.multiapp", Gio::Application::Flags::HANDLES_OPEN | Gio::Application::Flags::NON_UNIQUE),
+    apps ({
+        {"Chat", [] { return new Chat(); }},
+        {"Fractal", [] { return new Fractal(); }},
+        {"Browser", [] { return new Browser(); }}
+    }) {}
 
 Glib::RefPtr<MainApplication> MainApplication::create() {
     return Glib::make_refptr_for_instance<MainApplication>(new MainApplication());
@@ -39,32 +45,22 @@ Gtk::ApplicationWindow* MainApplication::create_window() {
     main_window  = Gtk::manage(ref_builder->get_widget<Gtk::ApplicationWindow>("main_window"));
 
     auto main_notebook {Gtk::manage(ref_builder->get_widget<Gtk::Notebook>("main_notebook"))};
-    auto main_box      {Gtk::manage(ref_builder->get_widget<Gtk::Box>("Chat"))};
+    for ( auto app : apps ) {
+        main_notebook->append_page(
+            *Gtk::manage(new Gtk::Box()),
+            *Gtk::manage(new Gtk::Label(app.first))
+        );
+    }
+    auto main_box      {Gtk::manage(dynamic_cast<Gtk::Box*>(main_notebook->get_nth_page(0)))};
 
     selected_app = Gtk::manage(new Chat());
     main_box->append(*selected_app);
 
     main_notebook->signal_switch_page().connect([this](Gtk::Widget* page, guint page_number) {
+        if (selected_app) selected_app->unparent();
+        selected_app = Gtk::manage(apps[page_number].second());
         auto app {dynamic_cast<Gtk::Box *>(page)};
-        if (selected_app) {
-            selected_app->unparent();
-            selected_app = nullptr;
-        }
-
-        switch(page_number) {
-        case 0:
-            selected_app = Gtk::manage(new Chat());
-            app->append(*selected_app);
-            break;
-        case 1:
-            selected_app = Gtk::manage(new FractalBox());
-            app->append(*selected_app);
-            break;
-        case 2:
-            selected_app = Gtk::manage(new Browser());
-            app->append(*selected_app);
-            break;
-        }
+        app->append(*selected_app);
     });
 
     add_window(*main_window);

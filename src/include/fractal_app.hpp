@@ -165,7 +165,7 @@ private:
  * Gtk::Box implementing class that contains important Gtk Widgets
  * for loading, displaying and saving fractals.
  */
-class FractalBox : public Gtk::Box {
+class Fractal : public Gtk::Box {
     friend class FractalTest;
     friend class FractalTest_FractalFunctionalTest_Test;
 
@@ -176,7 +176,7 @@ public:
      * Creates FractalBox object using res/gtk/fractal_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
-    FractalBox();
+    Fractal();
 
 private:
     std::string   selection{};

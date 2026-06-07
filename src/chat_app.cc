@@ -41,18 +41,18 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     // Add Callbacks
     if(home_button) [[likely]]
         home_button->signal_clicked().connect
-        ( [this](){ ip_entry->set_text(LOCALHOST); port_entry->set_text(DEFAULT_PORT); } );
+        ( [this]{ ip_entry->set_text(LOCALHOST); port_entry->set_text(DEFAULT_PORT); } );
     if(ip_entry) [[likely]]
-        ip_entry->signal_activate().connect([this](){ session_connection(); });
+        ip_entry->signal_activate().connect([this]{ session_connection(); });
     if(port_entry) [[likely]]
-        port_entry->signal_activate().connect([this](){ session_connection(); });
+        port_entry->signal_activate().connect([this]{ session_connection(); });
     if(connect_button) [[likely]]
-        connect_button->signal_clicked().connect([this](){ session_connection(); });
+        connect_button->signal_clicked().connect([this]{ session_connection(); });
 
     if(message_entry) [[likely]]
-        message_entry->signal_activate().connect( [this] () { message_buffer(); });
+        message_entry->signal_activate().connect( [this] { message_buffer(); });
     if(message_button) [[likely]]
-        message_button->signal_clicked().connect( [this] () { message_buffer(); });
+        message_button->signal_clicked().connect( [this] { message_buffer(); });
 
     // Insert elements into Browser Box
     insert_child_at_start(*header);
@@ -132,11 +132,11 @@ void Chat::session_connection() {
     footer_box->set_visible(true);
     message_entry->grab_focus();
 
-    session->set_disconnecter([this]() {
-        Glib::signal_idle().connect_once([this]() { session_connection(); });
+    session->set_disconnecter([this] {
+        Glib::signal_idle().connect_once([this] { session_connection(); });
     });
     dispatcher = std::make_unique<Glib::Dispatcher>();
-    dispatcher->connect([this]() {
+    dispatcher->connect([this] {
         std::lock_guard<std::mutex> lock(session->receive_mutex);
         while (!session->receive_queue.empty()) {
             std::string message{std::move(session->receive_queue.front())};
@@ -165,13 +165,13 @@ void Chat::session_connection() {
             bubble->set_wrap_mode(Pango::WrapMode::WORD_CHAR);
             chat_box->append(*bubble);
 
-            Glib::signal_idle().connect_once([this]() {
+            Glib::signal_idle().connect_once([this] {
                 auto adj = chat_scrolled->get_vadjustment();
                 adj->set_value(adj->get_upper() - adj->get_page_size());
             });
         }
     });
-    session->set_poster([this]() { dispatcher->emit(); });
+    session->set_poster([this] { dispatcher->emit(); });
 }
 
 void Chat::message_buffer () {

@@ -40,8 +40,9 @@ MultiApp/            // Core application files
 - 🎉 Simple internet browser
 - 🎉 Fractal creator
 - 🎉 Local chat app
-- ❌ Maze generator/player/solver
 - ❌ Game of life
+- ❌ Maze generator/player/solver
+- ❌ Music player
 - ❌ Local AI chat with ollama
 - 🔬 Other goodies in the future
 

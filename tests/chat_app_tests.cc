@@ -74,14 +74,14 @@ TEST_F(ChatTest, ChatFunctionalTest) {
     ASSERT_THAT(std::regex_search(server->session->receive_queue.front(), std::regex("User\\d says Hi!!!")), ::testing::Eq(true));
 
     // Check poster and disconnecter setters
-    server->session->set_poster([this](){ std::cout << "Posting message from Server..." << std::endl; });
-    server->session->set_disconnecter([this](){ std::cout << "Disconnecting from Server..." << std::endl; });
+    server->session->set_poster([this]{ std::cout << "Posting message from Server..." << std::endl; });
+    server->session->set_disconnecter([this]{ std::cout << "Disconnecting from Server..." << std::endl; });
     ASSERT_THAT(server->session->poster, ::testing::NotNull());
     ASSERT_THAT(server->session->disconnecter, ::testing::NotNull());
     server->session->poster();
     server->session->disconnecter();
-    client_1->session->set_poster([this](){ std::cout << "Posting message from Client..." << std::endl; });
-    client_1->session->set_disconnecter([this](){ std::cout << "Disconnecting from Client..." << std::endl; });
+    client_1->session->set_poster([this]{ std::cout << "Posting message from Client..." << std::endl; });
+    client_1->session->set_disconnecter([this]{ std::cout << "Disconnecting from Client..." << std::endl; });
     ASSERT_THAT(client_1->session->poster, ::testing::NotNull());
     ASSERT_THAT(client_1->session->disconnecter, ::testing::NotNull());
     client_1->session->poster();
