@@ -20,7 +20,7 @@ public:
     /**
      * @brief Creates Chat object with all needed Widgets and signals.
      *
-     * Creates Chat object using res/gtk/chat_app.ui file,
+     * Creates Chat object using resources/gtk/chat_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
     Chat();

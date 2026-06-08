@@ -1,4 +1,4 @@
-#include "include/browser_app.hpp"
+#include "../include/browser_app.hpp"
 
 #include <iostream>
 #include <regex>
@@ -11,7 +11,7 @@ Browser::Browser() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
     try {
-        ref_builder->add_from_file("res/gtk/browser_app.ui");
+        ref_builder->add_from_file("resources/gtk/browser_app.ui");
     } catch(const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << std::endl;
         throw ex;

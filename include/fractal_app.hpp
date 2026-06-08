@@ -173,7 +173,7 @@ public:
     /**
      * @brief Creates FractalBox object with all needed Widgets and signals.
      *
-     * Creates FractalBox object using res/gtk/fractal_app.ui file,
+     * Creates FractalBox object using resources/gtk/fractal_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
     Fractal();

@@ -1,4 +1,4 @@
-#include "include/tests.hpp"
+#include "../include/tests.hpp"
 
 #include <gtkmm.h>
 #include <regex>
