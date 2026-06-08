@@ -27,11 +27,10 @@ In the future it should have apps that work using SQL, SDL and even web requests
 MultiApp/            // Core application files
 ├── include/         // C++ Project and Test Header Files
 ├── src/             // Main C++ Project Source Files
-├── resources/       // Misc Resources
-│   │── gtk/         // Gtk UI Resources
-│   └── screenshots/ // README Screenshots
-│
-└── tests/           // Test Source Files
+├── tests/           // Test Source Files
+└── resources/       // Misc Resources
+    │── gtk/         // Gtk UI Resources
+    └── screenshots/ // README Screenshots
 ```
 
 ## 🗺️ Roadmap
