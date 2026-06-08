@@ -1,8 +1,8 @@
-#include "include/main_application.hpp"
+#include "../include/main_application.hpp"
 #include "gtkmm/object.h"
-#include "include/browser_app.hpp"
-#include "include/fractal_app.hpp"
-#include "include/chat_app.hpp"
+#include "../include/browser_app.hpp"
+#include "../include/fractal_app.hpp"
+#include "../include/chat_app.hpp"
 
 #include <iostream>
 
@@ -28,7 +28,7 @@ Gtk::ApplicationWindow* MainApplication::create_window() {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
     try {
-        ref_builder->add_from_file("res/gtk/main_app.ui");
+        ref_builder->add_from_file("resources/gtk/main_app.ui");
     } catch(const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << std::endl;
         throw ex;

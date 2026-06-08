@@ -1,4 +1,4 @@
-#include "include/fractal_app.hpp"
+#include "../include/fractal_app.hpp"
 
 #include <iostream>
 #include <any>
@@ -164,7 +164,7 @@ Fractal::Fractal() : Gtk::Box(Gtk::Orientation::HORIZONTAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
     try {
-        ref_builder->add_from_file("res/gtk/fractal_app.ui");
+        ref_builder->add_from_file("resources/gtk/fractal_app.ui");
     } catch(const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << std::endl;
         throw ex;

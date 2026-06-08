@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../src/include/main_application.hpp"
-#include "../../src/include/browser_app.hpp"
-#include "../../src/include/fractal_app.hpp"
-#include "../../src/include/chat_app.hpp"
+#include "main_application.hpp"
+#include "browser_app.hpp"
+#include "fractal_app.hpp"
+#include "chat_app.hpp"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

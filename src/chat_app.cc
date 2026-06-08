@@ -1,5 +1,5 @@
-#include "include/chat_app.hpp"
-#include "include/session.hpp"
+#include "../include/chat_app.hpp"
+#include "../include/session.hpp"
 
 #include <gtkmm.h>
 #include <iostream>
@@ -11,7 +11,7 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
     // Load the GtkBuilder file and instantiate its widgets, check for errors
     auto ref_builder {Gtk::Builder::create()};
     try {
-        ref_builder->add_from_file("res/gtk/chat_app.ui");
+        ref_builder->add_from_file("resources/gtk/chat_app.ui");
     } catch(const Glib::FileError& ex) {
         std::cerr << "FileError: " << ex.what() << "\n";
         throw ex;
@@ -61,7 +61,7 @@ Chat::Chat() : Gtk::Box(Gtk::Orientation::VERTICAL) {
 
     // Add css to the default display
     auto css_provider = Gtk::CssProvider::create();
-    css_provider->load_from_path("./res/gtk/chat_app.css");
+    css_provider->load_from_path("./resources/gtk/chat_app.css");
 
     Gtk::StyleContext::add_provider_for_display(
         Gdk::Display::get_default(),

@@ -25,14 +25,13 @@ In the future it should have apps that work using SQL, SDL and even web requests
 
 ``` C++
 MultiApp/            // Core application files
-├── src/             // C++ Source Files
-│   └── include/     // C++ Header Files
-│
-├── res/             // Misc Resources
-│   └── gtk/         // Gtk UI Resources
+├── include/         // C++ Project and Test Header Files
+├── src/             // Main C++ Project Source Files
+├── resources/       // Misc Resources
+│   │── gtk/         // Gtk UI Resources
+│   └── screenshots/ // README Screenshots
 │
 └── tests/           // Test Source Files
-    └── include/     // Tests Header Files
 ```
 
 ## 🗺️ Roadmap
@@ -99,13 +98,13 @@ and run with ```sudo docker run -it --rm -e DISPLAY=$DISPLAY --network host -v /
 Here are some screenshots of the funtioning app on Linux.
 
 Fresh window when opening browser app:
-![Browser App](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/fresh_window.png)
+![Browser App](https://github.com/dxchel/MultiApp/blob/main/resources/screenshots/fresh_window.png)
 
 Window after adding directions and returning to project repo in URL history, notice both back and forward buttons enabled:
-![Added some directions and returned to project Repo](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/multiapp_repo.png)
+![Added some directions and returned to project Repo](https://github.com/dxchel/MultiApp/blob/main/resources/screenshots/multiapp_repo.png)
 
 Fractal app window:
-![Fractal App](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/fractal.png)
+![Fractal App](https://github.com/dxchel/MultiApp/blob/main/resources/screenshots/fractal.png)
 
 Chat app window:
-![Chat App](https://github.com/dxchel/MultiApp/blob/main/res/screenshots/chat.png)
+![Chat App](https://github.com/dxchel/MultiApp/blob/main/resources/screenshots/chat.png)

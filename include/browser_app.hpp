@@ -20,7 +20,7 @@ public:
     /**
      * @brief Creates Browser object with all needed Widgets and signals.
      *
-     * Creates Browser object using res/gtk/browser_app.ui file,
+     * Creates Browser object using resources/gtk/browser_app.ui file,
      * Checks for file issues, gets Widgets and connects needed signals.
      */
     Browser();
