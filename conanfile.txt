@@ -1,0 +1,11 @@
+[requires]
+asio/1.38.2
+gtest/1.18.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
+
