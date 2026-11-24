@@ -9,7 +9,9 @@
 #include <cairo.h>
 
 
-int mandelbrot(double cr, double ci, int max_iter, const std::vector<std::any>) {
+int mandelbrot(double cr, double ci, int max_iter, const std::vector<double> consts) {
+    if (!consts.empty())
+        std::cerr << "Mandelbrot fractal does not use constants, ignoring provided values." << std::endl;
     double zr {}, zi {};
     for (int i{}; i < max_iter; ++i) {
         double zr2 {zr*zr - zi*zi + cr},
@@ -20,15 +22,15 @@ int mandelbrot(double cr, double ci, int max_iter, const std::vector<std::any>) 
     return max_iter;
 }
 
-int julia(double cr, double ci, int max_iter, const std::vector<std::any> consts) {
+int julia(double cr, double ci, int max_iter, const std::vector<double> consts) {
     if (consts.size() != 2) {
         std::cerr << "Julia fractal requires two constants, using defaults." << std::endl;
         return julia(cr, ci, max_iter, {-0.5125, 0.5213});
     }
     double zr {cr}, zi {ci};
     for (int i{}; i < max_iter; ++i) {
-        double zr2 {zr*zr - zi*zi + std::any_cast<double>(consts[0])},
-            zi2 {2.0*zr*zi + std::any_cast<double>(consts[1])};
+        double zr2 {zr*zr - zi*zi + consts[0]},
+            zi2 {2.0*zr*zi + consts[1]};
         zr = zr2; zi = zi2;
         if (zr*zr + zi*zi > 7.0) return i;
     }

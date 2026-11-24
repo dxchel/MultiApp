@@ -15,12 +15,12 @@
  * @param[in] cr: Real part of the point to analyze in the complex plane.
  * @param[in] ci: Imaginary part of the point to analyze in the complex plane.
  * @param[in] max_iter: Maximum iterations available for fractal resolution.
- * @param[in] vector: Vector needed for the declaration to be consistent for fractal function mapping.
+ * @param[in] vector<double>: Vector needed for the declaration to be consistent for fractal function mapping.
  *
  * @return Number of iterations until the value diverges.
  */
 
-int mandelbrot(double, double, int, const std::vector<std::any> = {});
+int mandelbrot(double, double, int, const std::vector<double> = {});
 /**
  * @brief Julia Fractal algorithm
  *
@@ -30,11 +30,11 @@ int mandelbrot(double, double, int, const std::vector<std::any> = {});
  * @param[in] cr: Real part of the point to analyze in the complex plane.
  * @param[in] ci: Imaginary part of the point to analyze in the complex plane.
  * @param[in] max_iter: Maximum iterations available for fractal resolution.
- * @param[in] vector: Vector containing the two constants needed in the Julia fractal algorithm.
+ * @param[in] vector<double>: Vector containing the two constants needed in the Julia fractal algorithm.
  *
  * @return Number of iterations until the value diverges.
  */
-int julia(double, double, int, const std::vector<std::any> = {-0.5125, 0.5213});
+int julia(double, double, int, const std::vector<double> = {-0.5125, 0.5213});
 
 
 /**
@@ -145,7 +145,7 @@ private:
 
     Cairo::RefPtr<Cairo::ImageSurface> surface;
 
-    std::unordered_map<std::string, std::function<int(double, double, int, std::vector<std::any>)>> fractal_map;
+    std::unordered_map<std::string, std::function<int(double, double, int, std::vector<double>)>> fractal_map;
 
     /**
      * @brief Uses custom RGB intervals to draw spectrum
